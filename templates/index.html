@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-32 text-center bg-gradient-to-b from-blue-50 to-white">
+    <div class="container mx-auto px-6">
+        <h1 class="text-6xl font-extrabold mb-6 text-gray-900 leading-tight">
+            Persiapan Terbaik untuk<br>
+            <span class="text-primary">CPNS & BUMN</span>
+        </h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
+            Ribuan soal latihan berkualitas untuk membantu Anda lolos seleksi CPNS dan BUMN impian.
+        </p>
+        <div class="flex gap-4 justify-center">
+            <a href="{% url 'register' %}"
+                class="bg-primary hover:bg-primary-dark text-white px-10 py-4 rounded-lg font-semibold text-lg transition transform hover:-translate-y-1 shadow-lg">
+                Mulai Berlatih Gratis
+            </a>
+            <a href="{% url 'pricing' %}"
+                class="border-2 border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-10 py-4 rounded-lg font-semibold text-lg transition">
+                Lihat Paket
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-24 bg-white">
+    <div class="container mx-auto px-6">
+        <h2 class="text-4xl font-bold text-center mb-4 text-gray-900">Mengapa Memilih Kami?</h2>
+        <p class="text-center text-gray-600 mb-16 text-lg">Platform terlengkap untuk persiapan CPNS & BUMN</p>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div
+                class="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl border-2 border-blue-100 hover:border-primary transition shadow-lg">
+                <div class="text-4xl mb-4">📚</div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Soal Berkualitas</h3>
+                <p class="text-gray-600">Ribuan soal yang disusun sesuai kisi-kisi terbaru CPNS dan BUMN.</p>
+            </div>
+
+            <div
+                class="bg-gradient-to-br from-green-50 to-white p-8 rounded-2xl border-2 border-green-100 hover:border-secondary transition shadow-lg">
+                <div class="text-4xl mb-4">✅</div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Pembahasan Lengkap</h3>
+                <p class="text-gray-600">Setiap soal dilengkapi pembahasan detail untuk memperdalam pemahaman.</p>
+            </div>
+
+            <div
+                class="bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl border-2 border-purple-100 hover:border-purple-500 transition shadow-lg">
+                <div class="text-4xl mb-4">📊</div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Progress Tracking</h3>
+                <p class="text-gray-600">Pantau perkembangan belajar Anda dengan sistem tracking yang akurat.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-24 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+    <div class="container mx-auto px-6 text-center">
+        <h2 class="text-4xl font-bold mb-4">Siap Memulai Perjalanan Anda?</h2>
+        <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Bergabunglah dengan ribuan peserta lainnya yang sudah mempersiapkan diri untuk CPNS & BUMN
+        </p>
+        <a href="{% url 'register' %}"
+            class="inline-block bg-white text-primary hover:bg-gray-100 px-10 py-4 rounded-lg font-bold text-lg transition transform hover:-translate-y-1 shadow-xl">
+            Daftar Sekarang - Gratis!
+        </a>
+    </div>
+</section>
+{% endblock %}

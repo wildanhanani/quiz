@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-24 bg-gradient-to-b from-white to-gray-100 min-h-screen">
+    <div class="container mx-auto px-6">
+        <h2 class="text-5xl font-bold text-center mb-4 text-gray-900">Pilih Paket Anda</h2>
+        <p class="text-center text-gray-600 mb-16 text-xl">Investasi terbaik untuk persiapan CPNS & BUMN</p>
+
+        <div class="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
+            <!-- Free Plan -->
+            <div
+                class="bg-white p-10 rounded-2xl border-2 border-gray-200 flex-1 min-w-[320px] max-w-sm flex flex-col shadow-lg">
+                <h3 class="text-2xl font-bold mb-2 text-gray-900">Gratis</h3>
+                <div class="text-5xl font-extrabold my-4 text-gray-900">Rp 0</div>
+                <p class="text-gray-600 mb-8">Coba fitur dasar kami</p>
+                <ul class="space-y-3 mb-8 flex-1">
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Akses kategori gratis
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <strong>1x percobaan</strong> per soal
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Lihat pembahasan jawaban
+                    </li>
+                </ul>
+                <a href="{% url 'register' %}"
+                    class="block text-center border-2 border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-6 py-3 rounded-lg font-semibold transition">
+                    Mulai Gratis
+                </a>
+            </div>
+
+            <!-- Basic Plan -->
+            <div
+                class="bg-white p-10 rounded-2xl border-2 border-blue-500 flex-1 min-w-[320px] max-w-sm relative flex flex-col shadow-xl transform scale-105">
+                <div
+                    class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-1 rounded-full text-sm font-bold">
+                    POPULER
+                </div>
+                <h3 class="text-2xl font-bold text-blue-600 mb-2">Paket Basic</h3>
+                <div class="text-5xl font-extrabold my-4 text-gray-900">
+                    Rp 10.000
+                </div>
+                <p class="text-gray-600 mb-8">Persiapan fokus & efektif</p>
+                <ul class="space-y-3 mb-8 flex-1">
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <strong>Akses 5 kategori soal</strong>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <strong>3x mengulang per soal</strong>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Pembahasan lengkap
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-700">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Progress tracking
+                    </li>
+                </ul>
+                <a href="{% url 'register' %}"
+                    class="block text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition shadow-lg">
+                    Pilih Basic
+                </a>
+            </div>
+
+            <!-- Premium Plan -->
+            <div
+                class="bg-gradient-to-br from-blue-600 to-blue-800 p-10 rounded-2xl border-2 border-blue-600 flex-1 min-w-[320px] max-w-sm relative flex flex-col shadow-xl text-white">
+                <div
+                    class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-gray-900 px-6 py-1 rounded-full text-sm font-bold">
+                    TERBAIK
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Paket Premium</h3>
+                <div class="text-5xl font-extrabold my-4">
+                    Rp 50.000
+                </div>
+                <p class="text-blue-100 mb-8">Persiapan maksimal & menyeluruh</p>
+                <ul class="space-y-3 mb-8 flex-1">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <strong>Akses SEMUA kategori</strong>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <strong>5x mengulang per soal</strong>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Pembahasan detail + tips
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Analytics mendalam
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Priority support
+                    </li>
+                </ul>
+                <a href="{% url 'register' %}"
+                    class="block text-center bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg font-bold transition shadow-lg">
+                    Pilih Premium
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-16 text-center max-w-2xl mx-auto">
+            <p class="text-gray-600 mb-4">💡 <strong>Catatan:</strong> Setelah registrasi, hubungi admin untuk upgrade
+                paket Anda.</p>
+            <p class="text-sm text-gray-500">Semua paket sudah termasuk akses pembahasan jawaban yang benar setelah
+                mengerjakan soal.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

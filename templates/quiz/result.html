@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-12">
+    <div class="container mx-auto px-6 max-w-5xl">
+        <!-- Score Summary -->
+        <div class="text-center mb-12">
+            <div class="text-6xl mb-4">
+                {% if percentage >= 80 %}
+                🎉
+                {% elif percentage >= 50 %}
+                👍
+                {% else %}
+                💪
+                {% endif %}
+            </div>
+            <h2 class="text-4xl font-bold mb-4 text-gray-900">Quiz Selesai!</h2>
+            <p class="text-gray-600 text-xl">{{ category.name }}</p>
+        </div>
+
+        <div class="bg-white border-2 border-gray-200 rounded-2xl p-12 mb-12 shadow-lg">
+            <p class="text-gray-600 mb-4 text-center">Skor Anda</p>
+            <div class="text-7xl font-extrabold text-primary mb-2 text-center">
+                {{ score }}
+            </div>
+            <p class="text-2xl text-gray-600 mb-8 text-center">dari {{ total }} soal</p>
+
+            <!-- Progress Bar -->
+            <div class="bg-gray-200 h-4 rounded-full overflow-hidden mb-8">
+                <div class="bg-gradient-to-r from-primary to-blue-600 h-full transition-all duration-1000"
+                    style="width: {{ percentage }}%"></div>
+            </div>
+
+            <p class="text-xl font-semibold mb-2 text-center text-gray-900">
+                {% if percentage >= 80 %}
+                Luar biasa! Anda sangat menguasai materi ini! 🌟
+                {% elif percentage >= 50 %}
+                Bagus! Terus tingkatkan pemahaman Anda. 📚
+                {% else %}
+                Jangan menyerah! Terus berlatih dan pelajari pembahasannya. 💪
+                {% endif %}
+            </p>
+            <p class="text-gray-600 text-center">{{ percentage|floatformat:0 }}% Benar</p>
+        </div>
+
+        <!-- Answer Review -->
+        <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 mb-8 shadow-lg">
+            <h3 class="text-2xl font-bold mb-6 text-gray-900">📝 Pembahasan Jawaban</h3>
+
+            <div class="space-y-6">
+                {% for item in questions_with_answers %}
+                <div class="border-b border-gray-200 pb-6 last:border-0">
+                    <div class="flex items-start gap-3 mb-4">
+                        {% if item.user_was_correct %}
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">✓
+                            Benar</span>
+                        {% else %}
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold">✗ Salah</span>
+                        {% endif %}
+                    </div>
+
+                    <h4 class="text-lg font-semibold mb-4 text-gray-900">
+                        {{ forloop.counter }}. {{ item.question.text }}
+                    </h4>
+
+                    <div class="space-y-2 ml-4">
+                        {% for choice in item.choices %}
+                        <div class="flex items-center gap-3 p-3 rounded-lg
+                            {% if choice.is_correct %}
+                                bg-green-50 border-2 border-green-500
+                            {% elif choice.was_selected and not choice.is_correct %}
+                                bg-red-50 border-2 border-red-500
+                            {% else %}
+                                bg-gray-50 border border-gray-200
+                            {% endif %}">
+
+                            {% if choice.is_correct %}
+                            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            {% elif choice.was_selected %}
+                            <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            {% else %}
+                            <div class="w-5 h-5 flex-shrink-0"></div>
+                            {% endif %}
+
+                            <span
+                                class="{% if choice.is_correct %}text-green-900 font-semibold{% elif choice.was_selected %}text-red-900{% else %}text-gray-700{% endif %}">
+                                {{ choice.text }}
+                                {% if choice.is_correct %}
+                                <span class="text-green-600 text-sm ml-2">(Jawaban Benar)</span>
+                                {% elif choice.was_selected %}
+                                <span class="text-red-600 text-sm ml-2">(Jawaban Anda)</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 justify-center">
+            <a href="{% url 'dashboard' %}"
+                class="border-2 border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-8 py-3 rounded-lg font-semibold transition">
+                ← Kembali ke Dashboard
+            </a>
+            <a href="{% url 'take_quiz' category.id %}"
+                class="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-lg font-semibold transition">
+                Ulangi Quiz 🔄
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

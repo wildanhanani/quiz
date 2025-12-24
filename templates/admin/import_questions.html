@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px;">
+    <h1 style="color: #333; margin-bottom: 2rem;">Import Questions from CSV</h1>
+
+    <div
+        style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid #2563eb;">
+        <h3 style="color: #1e40af; margin-bottom: 1rem;">📋 CSV Format Instructions</h3>
+        <p style="color: #374151; margin-bottom: 1rem;">Your CSV file must have the following columns (header row
+            required):</p>
+
+        <div
+            style="background: #dbeafe; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border-left: 3px solid #2563eb;">
+            <p style="color: #1e40af; margin: 0; font-weight: 600;">
+                ✨ <strong>Delimiter Support:</strong> File bisa menggunakan <strong>koma (,)</strong> atau <strong>titik
+                    koma (;)</strong> sebagai pemisah.
+                Sistem akan otomatis mendeteksi!
+            </p>
+        </div>
+
+        <ul style="margin: 1rem 0; color: #374151; line-height: 1.8;">
+            <li><strong style="color: #1f2937;">category</strong> - Category name (e.g., "TWK")</li>
+            <li><strong style="color: #1f2937;">category_description</strong> - (Optional) Category description</li>
+            <li><strong style="color: #1f2937;">question</strong> - The question text</li>
+            <li><strong style="color: #1f2937;">order</strong> - Question order number (e.g., 1, 2, 3...)</li>
+            <li><strong style="color: #1f2937;">choice_1</strong> - First answer choice</li>
+            <li><strong style="color: #1f2937;">choice_2</strong> - Second answer choice</li>
+            <li><strong style="color: #1f2937;">choice_3</strong> - Third answer choice</li>
+            <li><strong style="color: #1f2937;">choice_4</strong> - Fourth answer choice</li>
+            <li><strong style="color: #1f2937;">choice_5</strong> - (Optional) Fifth answer choice</li>
+            <li><strong style="color: #1f2937;">correct_answer</strong> - Number of correct choice (1, 2, 3, 4, or 5)
+            </li>
+        </ul>
+
+        <div
+            style="background: #fef3c7; padding: 1rem; border-radius: 6px; margin-top: 1rem; border-left: 3px solid #f59e0b;">
+            <p style="color: #92400e; margin: 0;"><strong>💡 Catatan:</strong> <code>choice_5</code> bersifat opsional.
+                Anda bisa menggunakan 4 atau 5 pilihan jawaban.</p>
+        </div>
+
+        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Example CSV Content (with comma):</h4>
+        <pre
+            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">category,category_description,question,order,choice_1,choice_2,choice_3,choice_4,correct_answer
+TWK,Tes Wawasan Kebangsaan,Pancasila terdiri dari berapa sila?,1,3,4,5,6,3
+TIU,Tes Intelegensi Umum,Berapa hasil 5 x 5?,2,20,25,30,35,2</pre>
+
+        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Example CSV Content (with semicolon):
+        </h4>
+        <pre
+            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">category;category_description;question;order;choice_1;choice_2;choice_3;choice_4;correct_answer
+TWK;Tes Wawasan Kebangsaan;Pancasila terdiri dari berapa sila?;1;3;4;5;6;3
+TIU;Tes Intelegensi Umum;Berapa hasil 5 x 5?;2;20;25;30;35;2</pre>
+
+        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Example with 5 choices (comma):</h4>
+        <pre
+            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">category,category_description,question,order,choice_1,choice_2,choice_3,choice_4,choice_5,correct_answer
+TWK,Tes Wawasan Kebangsaan,Siapa presiden pertama RI?,1,Soekarno,Soeharto,Habibie,Megawati,SBY,1
+TIU,Tes Intelegensi Umum,Hasil 10 + 5 adalah?,2,10,12,15,18,20,3</pre>
+
+        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Example with 5 choices (semicolon):</h4>
+        <pre
+            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">category;category_description;question;order;choice_1;choice_2;choice_3;choice_4;choice_5;correct_answer
+TWK;Tes Wawasan Kebangsaan;Siapa presiden pertama RI?;1;Soekarno;Soeharto;Habibie;Megawati;SBY;1
+TIU;Tes Intelegensi Umum;Hasil 10 + 5 adalah?;2;10;12;15;18;20;3</pre>
+    </div>
+
+    <form method="post" enctype="multipart/form-data"
+        style="background: #f9fafb; padding: 2rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="csv_file" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">
+                Select CSV File:
+            </label>
+            <input type="file" name="csv_file" id="csv_file" accept=".csv" required
+                style="padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 6px; width: 100%; background: white; color: #1f2937;">
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit"
+                style="background: #2563eb; color: white; padding: 0.75rem 2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                Upload and Import
+            </button>
+            <a href="{% url 'admin:quiz_category_changelist' %}"
+                style="background: #6b7280; color: white; padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 600;">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <div
+        style="margin-top: 2rem; padding: 1.5rem; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
+        <h4 style="color: #92400e; margin-bottom: 0.75rem;">💡 Tips:</h4>
+        <ul style="color: #78350f; line-height: 1.8;">
+            <li>Make sure your CSV is UTF-8 encoded</li>
+            <li><strong>Delimiter otomatis terdeteksi</strong> - gunakan koma (,) atau titik koma (;)</li>
+            <li>Gunakan <strong>semicolon (;)</strong> jika data Anda mengandung koma di dalam teks</li>
+            <li>Categories will be created automatically if they don't exist</li>
+            <li><strong>choice_5 is optional</strong> - you can use 4 or 5 answer choices</li>
+            <li>Maximum recommended: 500 questions per upload</li>
+            <li>Download sample: <a href="/static/sample_questions.csv" style="color: #2563eb;">sample_questions.csv</a>
+                (comma) or <a href="/static/sample_questions_semicolon.csv"
+                    style="color: #2563eb;">sample_questions_semicolon.csv</a> (semicolon)</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

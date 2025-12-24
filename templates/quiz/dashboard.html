@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-6">
+        <!-- Header with Subscription Info -->
+        <div class="bg-white rounded-2xl border-2 border-gray-200 p-6 mb-8 shadow-lg">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-4xl font-bold mb-2 text-gray-900">Dashboard</h2>
+                    <p class="text-gray-600">Selamat datang, <strong class="text-primary">{{ user.username }}</strong>!
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div
+                        class="inline-block bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-3 rounded-lg shadow-lg">
+                        <p class="text-sm opacity-90">Paket Anda</p>
+                        <p class="text-xl font-bold">{{ subscription.get_package_display }}</p>
+                    </div>
+                    {% if subscription.package == 'FREE' %}
+                    <a href="{% url 'pricing' %}" class="block mt-2 text-sm text-primary hover:underline font-semibold">
+                        Upgrade Paket →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if not user.is_active %}
+            <div class="mt-4 bg-yellow-50 border-2 border-yellow-200 px-6 py-3 rounded-lg">
+                <p class="text-yellow-800 font-semibold">⏳ Akun Anda sedang menunggu persetujuan admin</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if user.is_active or user.is_superuser %}
+        <h3 class="text-2xl font-bold mb-6 text-gray-900">Kategori Soal Tersedia</h3>
+
+        {% if categories %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {% for category in categories %}
+            <div
+                class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-primary transition transform hover:-translate-y-1 shadow-lg">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-xl font-bold text-gray-900">{{ category.name }}</h4>
+                        {% if category.is_premium %}
+                        <span
+                            class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">PREMIUM</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        {{ category.description|default:"Latihan soal untuk kategori ini." }}
+                    </p>
+                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                        <span>📝 {{ category.questions.count }} Soal</span>
+                        <span class="text-primary font-semibold">
+                            {{ subscription.get_remaining_attempts|default:"0" }}x tersisa
+                        </span>
+                    </div>
+                    <a href="{% url 'take_quiz' category.id %}"
+                        class="block text-center bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-lg font-semibold transition">
+                        Mulai Latihan →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 text-center mb-12 shadow-lg">
+            <p class="text-gray-600">Belum ada kategori soal tersedia saat ini.</p>
+        </div>
+        {% endif %}
+
+        <!-- History Section -->
+        <h3 class="text-2xl font-bold mb-6 text-gray-900">Riwayat Latihan</h3>
+        {% if user_attempts %}
+        <div class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden shadow-lg">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b-2 border-gray-200">
+                    <tr class="text-left">
+                        <th class="px-6 py-4 text-gray-700 font-semibold">Kategori</th>
+                        <th class="px-6 py-4 text-gray-700 font-semibold">Skor</th>
+                        <th class="px-6 py-4 text-gray-700 font-semibold">Tanggal</th>
+                        <th class="px-6 py-4 text-gray-700 font-semibold">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for attempt in user_attempts %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-gray-900">{{ attempt.category.name }}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-primary">{{ attempt.score }}</span>
+                            <span class="text-gray-500">/ {{ attempt.total_questions }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ attempt.completed_at|date:"d M Y, H:i" }}</td>
+                        <td class="px-6 py-4">
+                            <a href="{% url 'quiz_result' attempt.id %}"
+                                class="text-primary hover:underline font-semibold">
+                                Lihat Detail →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 text-center shadow-lg">
+            <p class="text-gray-600">Anda belum mengerjakan soal apapun. Mulai latihan sekarang! 🚀</p>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-20 bg-white rounded-2xl border-2 border-gray-200 shadow-lg">
+            <div class="text-6xl mb-4">⏳</div>
+            <h3 class="text-2xl font-bold mb-3 text-gray-900">Akun Sedang Ditinjau</h3>
+            <p class="text-gray-600 max-w-md mx-auto">Akun Anda sedang menunggu persetujuan dari administrator. Anda
+                akan dapat mengakses soal setelah disetujui.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
