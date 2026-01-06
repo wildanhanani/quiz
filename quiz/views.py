@@ -115,3 +115,11 @@ def quiz_result(request, attempt_id):
         'questions_with_answers': questions_with_answers,
     }
     return render(request, 'quiz/result.html', context)
+
+@login_required
+def history(request):
+    attempts = QuizAttempt.objects.filter(user=request.user).order_by('-completed_at')
+    context = {
+        'attempts': attempts
+    }
+    return render(request, 'quiz/history.html', context)

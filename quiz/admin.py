@@ -43,90 +43,130 @@ class CategoryAdmin(admin.ModelAdmin):
     
     def import_questions(self, request):
         if request.method == 'POST':
-            csv_file = request.FILES.get('csv_file')
+            upload_file = request.FILES.get('csv_file')
             
-            if not csv_file:
-                messages.error(request, 'Please upload a CSV file.')
+            if not upload_file:
+                messages.error(request, 'Please upload a CSV or ZIP file.')
                 return redirect('..')
             
-            if not csv_file.name.endswith('.csv'):
-                messages.error(request, 'File must be a CSV.')
+            is_zip = upload_file.name.lower().endswith('.zip')
+            is_csv = upload_file.name.lower().endswith('.csv')
+            
+            if not (is_zip or is_csv):
+                messages.error(request, 'File must be CSV or ZIP.')
                 return redirect('..')
             
             try:
-                # Use utf-8-sig to handle BOM from Excel
-                data_set = csv_file.read().decode('utf-8-sig')
-                io_string = io.StringIO(data_set)
+                import zipfile
+                import os
+                from django.core.files import File
+                from django.conf import settings
+                import shutil
+                import tempfile
                 
-                # Auto-detect delimiter (comma or semicolon)
-                sample = io_string.read(2048)
-                io_string.seek(0)
+                # Create temp directory
+                temp_dir = tempfile.mkdtemp()
                 
-                # Count occurrences of delimiters in first line
-                first_line = sample.split('\n')[0]
-                comma_count = first_line.count(',')
-                semicolon_count = first_line.count(';')
+                csv_path = None
+                image_map = {} # Filename -> full path
                 
-                # Choose delimiter based on which appears more
-                delimiter = ';' if semicolon_count > comma_count else ','
-                
-                reader = csv.DictReader(io_string, delimiter=delimiter)
-                
-                # Normalize headers (strip whitespace and handle potential BOM issues manually if utf-8-sig failed)
-                reader.fieldnames = [name.strip() for name in reader.fieldnames]
-                
-                created_count = 0
-                for row in reader:
-                    # Strip whitespace from values
-                    row = {k: v.strip() if v else '' for k, v in row.items()}
+                if is_zip:
+                    with zipfile.ZipFile(upload_file, 'r') as zip_ref:
+                        zip_ref.extractall(temp_dir)
                     
-                    category_name = row.get('category', '')
-                    if not category_name:
-                        continue
-                    
-                    category, _ = Category.objects.get_or_create(
-                        name=category_name,
-                        defaults={'description': row.get('category_description', '')}
-                    )
-                    
-                    question_text = row.get('question', '')
-                    if not question_text:
-                        continue
-                    
-                    # Handle order safely
-                    try:
-                        order_val = int(row.get('order', 0))
-                    except ValueError:
-                        order_val = 0
+                    # Find CSV and Images
+                    for root, dirs, files in os.walk(temp_dir):
+                        for file in files:
+                            if file.lower().endswith('.csv') and not csv_path:
+                                csv_path = os.path.join(root, file)
+                            elif file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                                image_map[file] = os.path.join(root, file)
+                                
+                    if not csv_path:
+                        messages.error(request, 'No CSV file found in the ZIP archive.')
+                        shutil.rmtree(temp_dir)
+                        return redirect('..')
                         
-                    question = Question.objects.create(
-                        category=category,
-                        text=question_text,
-                        order=order_val
-                    )
-                    
-                    # Support up to 5 choices (choice_5 is optional)
-                    correct_answer_str = row.get('correct_answer', '')
-                    
-                    for i in range(1, 6):
-                        choice_key = f'choice_{i}'
-                        choice_text = row.get(choice_key, '')
-                        
-                        if choice_text:
-                            is_correct = correct_answer_str == str(i)
-                            Choice.objects.create(
-                                question=question,
-                                text=choice_text,
-                                is_correct=is_correct
-                            )
-                    
-                    created_count += 1
+                else:
+                    # Save uploaded CSV to temp file
+                    csv_path = os.path.join(temp_dir, 'import.csv')
+                    with open(csv_path, 'wb+') as destination:
+                        for chunk in upload_file.chunks():
+                            destination.write(chunk)
                 
-                messages.success(request, f'Successfully imported {created_count} questions! (Delimiter: {delimiter})')
+                # Process CSV
+                with open(csv_path, 'r', encoding='utf-8-sig') as f:
+                    # Auto-detect delimiter
+                    sample = f.read(2048)
+                    f.seek(0)
+                    first_line = sample.split('\n')[0]
+                    delimiter = ';' if first_line.count(';') > first_line.count(',') else ','
+                    
+                    reader = csv.DictReader(f, delimiter=delimiter)
+                    reader.fieldnames = [name.strip() for name in reader.fieldnames]
+                    
+                    created_count = 0
+                    
+                    for row in reader:
+                        row = {k: v.strip() if v else '' for k, v in row.items()}
+                        
+                        category_name = row.get('category', '')
+                        if not category_name:
+                            continue
+                        
+                        category, _ = Category.objects.get_or_create(
+                            name=category_name,
+                            defaults={'description': row.get('category_description', '')}
+                        )
+                        
+                        question_text = row.get('question', '')
+                        if not question_text:
+                            continue
+                        
+                        try:
+                            order_val = int(row.get('order', 0))
+                        except ValueError:
+                            order_val = 0
+                            
+                        # Create Question
+                        question = Question.objects.create(
+                            category=category,
+                            text=question_text,
+                            order=order_val
+                        )
+                        
+                        # Handle Image
+                        image_filename = row.get('image', '')
+                        if image_filename and image_filename in image_map:
+                            img_path = image_map[image_filename]
+                            with open(img_path, 'rb') as img_file:
+                                question.image.save(image_filename, File(img_file), save=True)
+                        
+                        # Choices
+                        correct_answer_str = row.get('correct_answer', '')
+                        for i in range(1, 6):
+                            choice_key = f'choice_{i}'
+                            choice_text = row.get(choice_key, '')
+                            if choice_text:
+                                is_correct = correct_answer_str == str(i)
+                                Choice.objects.create(
+                                    question=question,
+                                    text=choice_text,
+                                    is_correct=is_correct
+                                )
+                        
+                        created_count += 1
+                
+                # Cleanup
+                shutil.rmtree(temp_dir)
+                messages.success(request, f'Successfully imported {created_count} questions{" with images" if is_zip else ""}! (Delimiter: {delimiter})')
                 return redirect('..')
                 
             except Exception as e:
-                messages.error(request, f'Error importing CSV: {str(e)}')
+                # Ensure cleanup happens
+                if 'temp_dir' in locals() and os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+                messages.error(request, f'Error importing: {str(e)}')
                 return redirect('..')
         
         return render(request, 'admin/import_questions.html')

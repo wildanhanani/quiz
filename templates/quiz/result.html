@@ -63,6 +63,13 @@
                         {{ forloop.counter }}. {{ item.question.text }}
                     </h4>
 
+                    {% if item.question.image %}
+                    <div class="ml-4 mb-4">
+                        <img src="{{ item.question.image.url }}" alt="Gambar Soal"
+                            class="rounded-lg shadow-sm max-w-full h-auto max-h-64 object-contain border border-gray-200">
+                    </div>
+                    {% endif %}
+
                     <div class="space-y-2 ml-4">
                         {% for choice in item.choices %}
                         <div class="flex items-center gap-3 p-3 rounded-lg

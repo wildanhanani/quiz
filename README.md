@@ -51,41 +51,59 @@ python manage.py runserver
 
 ---
 
-## 📝 CSV Import dengan 5 Pilihan Jawaban
+## 📝 Panduan Import Soal (CSV & Gambar)
+
+### Opsi 1: CSV Only (Teks Saja)
+Gunakan file `.csv` biasa jika soal hanya berupa teks.
+
+### Opsi 2: ZIP File (Soal Bergambar) 📸
+Jika soal memiliki gambar, Anda harus mengupload file **.zip** yang berisi:
+1. File `.csv` (daftar soal)
+2. File gambar `.jpg` atau `.png`
+
+**Struktur ZIP:**
+```
+soal_cpns.zip
+├── soal.csv
+├── gambar1.jpg
+├── rumus_mtk.png
+└── garuda.jpg
+```
+
+---
 
 ### Format CSV
+Tambahkan kolom `image` di file CSV Anda.
 
 **Header Wajib:**
 ```csv
-category,category_description,question,order,choice_1,choice_2,choice_3,choice_4,choice_5,correct_answer
+category;question;image;choice_1;choice_2;choice_3;choice_4;choice_5;correct_answer
+```
+*(Gunakan titik koma `;` jika teks soal mengandung koma)*
+
+### Contoh Isi CSV:
+
+**1. Soal Bergambar 4 Pilihan:**
+```csv
+TWK;Lambang negara di samping adalah?;garuda.jpg;Bintang;Pohon Beringin;Garuda;Padi Kapas;;3
+```
+*(Pastikan file `garuda.jpg` ada di dalam ZIP)*
+
+**2. Soal Teks Biasa 5 Pilihan:**
+```csv
+TIU;Siapa penemu lampu?;(kosongkan);Tesla;Edison;Einstein;Grahambell;Newton;2
 ```
 
-### Contoh 1: Soal dengan 4 Pilihan
-```csv
-TWK,Tes Wawasan Kebangsaan,Pancasila terdiri dari berapa sila?,1,3,4,5,6,,3
-```
-**Catatan:** `choice_5` dikosongkan
-
-### Contoh 2: Soal dengan 5 Pilihan
-```csv
-TWK,Tes Wawasan Kebangsaan,Siapa presiden pertama RI?,1,Soekarno,Soeharto,Habibie,Megawati,SBY,1
-```
-
-### Contoh 3: File Lengkap (Campuran)
-```csv
-category,category_description,question,order,choice_1,choice_2,choice_3,choice_4,choice_5,correct_answer
-TWK,Tes Wawasan Kebangsaan,Pancasila terdiri dari berapa sila?,1,3,4,5,6,,3
-TWK,Tes Wawasan Kebangsaan,Siapa presiden pertama RI?,2,Soekarno,Soeharto,Habibie,Megawati,SBY,1
-TIU,Tes Intelegensi Umum,Berapa hasil 5 x 5?,3,20,25,30,35,,2
-TKP,Tes Karakteristik Pribadi,Jika menemukan uang?,4,Ambil,Lapor polisi,Biarkan,Beri orang lain,Simpan dulu,2
-```
+---
 
 ### Cara Import
 1. Login ke `/admin/`
 2. Klik **Categories** → **Import Questions from CSV**
-3. Upload file CSV
-4. Sistem otomatis detect 4 atau 5 pilihan
-5. Done! ✅
+3. Pilih File:
+   - Upload **.csv** (jika teks saja)
+   - Upload **.zip** (jika ada gambar)
+4. Klik **Upload and Import**
+5. Sistem otomatis mengekstrak & mencocokkan gambar. ✅
 
 ---
 

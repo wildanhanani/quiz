@@ -18,6 +18,7 @@ class Category(models.Model):
 class Question(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()  # Changed from CharField to TextField for unlimited length
+    image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     order = models.IntegerField(default=0)
 
     def __str__(self):
@@ -82,6 +83,12 @@ class QuizAttempt(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.category.name} - {self.score}"
+    
+    @property
+    def is_passed(self):
+        if self.total_questions == 0:
+            return False
+        return (self.score / self.total_questions) >= 0.6
     
     class Meta:
         ordering = ['-completed_at']

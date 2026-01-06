@@ -39,6 +39,13 @@
                     </h4>
                 </div>
 
+                {% if question.image %}
+                <div class="ml-14 mb-6">
+                    <img src="{{ question.image.url }}" alt="Gambar Soal"
+                        class="rounded-lg shadow-md max-w-full h-auto max-h-96 object-contain border border-gray-200">
+                </div>
+                {% endif %}
+
                 <!-- Choices -->
                 <div class="space-y-3 ml-14">
                     {% for choice in question.choices.all %}
