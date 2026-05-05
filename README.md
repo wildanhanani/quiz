@@ -1,4 +1,4 @@
-# 🎓 Test Soal CPNS & BUMN - Complete Guide
+# 🎓 BelajarUji CPNS & BUMN - Complete Guide
 
 ## ✅ Update Terbaru: Support 5 Pilihan Jawaban!
 
@@ -10,7 +10,7 @@ CSV Import sekarang mendukung **4 atau 5 pilihan jawaban** per soal.
 
 ### 🎨 Design & Branding
 - ✅ **Light Theme** - Background putih, clean & professional
-- ✅ **Branding**: Test Soal CPNS & BUMN
+- ✅ **Branding**: BelajarUji CPNS & BUMN
 - ✅ **Color**: Blue (#2563eb) - Formal & trustworthy
 
 ### 💰 Paket Berlangganan
@@ -37,24 +37,97 @@ CSV Import sekarang mendukung **4 atau 5 pilihan jawaban** per soal.
 chmod +x setup.sh
 ./setup.sh
 
-# 2. Run server
-python manage.py runserver
+# 2. Start dev server
+chmod +x run_dev.sh
+./run_dev.sh
 
 # 3. Akses
-# - Website: http://127.0.0.1:8000/
+# - Website: http://127.0.0.1:8000/ (atau port berikutnya jika 8000 bentrok)
 # - Admin: http://127.0.0.1:8000/admin/
+# - Health Check: http://127.0.0.1:8000/healthz/
+```
+
+Jika `DATABASE_URL` tidak diisi dan variabel `DB_*` tidak tersedia, aplikasi akan fallback ke SQLite lokal (`db.sqlite3`) untuk development.
+
+### Environment
+
+- Gunakan `.env.example` sebagai template konfigurasi lokal.
+- `APP_ENV=development` untuk lokal, dan `APP_ENV=production` untuk deploy nyata.
+- Default setup sekarang mengarah ke mode SQLite agar project bisa langsung jalan tanpa PostgreSQL.
+- Jika ingin memakai PostgreSQL, isi `DATABASE_URL` atau `DB_*` di `.env` sebelum menjalankan `./run_dev.sh`.
+- `run_dev.sh` akan otomatis mencari port kosong mulai dari `8000`.
+- Untuk Google login, isi juga `SITE_ID`, `SITE_DOMAIN`, `SITE_NAME`, dan `ACCOUNT_DEFAULT_HTTP_PROTOCOL`.
+- Saat `APP_ENV=production`, aplikasi otomatis mengaktifkan hardening HTTPS/cookie/HSTS/logging dasar. Pastikan `SECRET_KEY`, `ALLOWED_HOSTS`, dan `CSRF_TRUSTED_ORIGINS` diisi dengan benar.
+- Styling sekarang dibuild ke asset lokal di `static/css/app.css`, tidak lagi mengandalkan Tailwind CDN saat runtime.
+
+### Frontend CSS
+
+```bash
+npm install
+npm run build:css
+```
+
+Untuk development saat mengubah template/class Tailwind:
+
+```bash
+npm run watch:css
 ```
 
 ### Default Login
 - **Admin**: `admin` / `admin`
 - **User**: `testuser` / `test123`
 
+### Google Login
+
+1. Isi environment:
+   - `SITE_ID=1`
+   - `SITE_DOMAIN=localhost:8000`
+   - `SITE_NAME=BelajarUji`
+   - `ACCOUNT_DEFAULT_HTTP_PROTOCOL=http`
+2. Sinkronkan record site:
+   - `venv/bin/python manage.py sync_site`
+3. Lihat nilai OAuth yang perlu diisi ke Google Cloud Console:
+   - `venv/bin/python manage.py show_google_oauth_setup`
+4. Di admin, buat `Social application` baru:
+   - Provider: `Google`
+   - Isi `Client id` dan `Secret key`
+   - Hubungkan ke site aktif yang domain-nya sama dengan `SITE_DOMAIN`
+
+Tombol Google di halaman login/register hanya tampil jika `SocialApp` Google untuk `SITE_ID` aktif memang ada.
+
+### Production Baseline
+
+Minimum yang sebaiknya diisi saat deploy:
+
+```env
+APP_ENV=production
+DEBUG=False
+SECRET_KEY=ganti-dengan-secret-yang-panjang-dan-random
+ALLOWED_HOSTS=quiz.example.com
+CSRF_TRUSTED_ORIGINS=https://quiz.example.com
+SITE_DOMAIN=quiz.example.com
+SITE_NAME=BelajarUji
+ACCOUNT_DEFAULT_HTTP_PROTOCOL=https
+USE_PROXY_SSL_HEADER=True
+USE_X_FORWARDED_HOST=True
+USE_X_FORWARDED_PORT=True
+DATABASE_URL=postgres://user:password@db-host:5432/quiz
+```
+
+Catatan deploy:
+- Jalankan `venv/bin/python manage.py migrate`
+- Jalankan `venv/bin/python manage.py collectstatic --noinput`
+- Jalankan `venv/bin/python manage.py check --deploy`
+- `healthz` sengaja dikecualikan dari HTTPS redirect default agar lebih mudah dipakai untuk probe internal
+- Jika TLS termination tidak memakai reverse proxy yang mengirim header forwarded, ubah `USE_PROXY_SSL_HEADER=False`
+- Panduan deploy lengkap ada di `DEPLOY.md`
+
 ---
 
 ## 📝 Panduan Import Soal (CSV & Gambar)
 
-### Opsi 1: CSV Only (Teks Saja)
-Gunakan file `.csv` biasa jika soal hanya berupa teks.
+### Opsi 1: CSV / Excel (Teks Saja)
+Gunakan file `.csv` atau `.xlsx` jika soal hanya berupa teks.
 
 ### Opsi 2: ZIP File (Soal Bergambar) 📸
 Jika soal memiliki gambar, Anda harus mengupload file **.zip** yang berisi:
@@ -94,14 +167,18 @@ TWK;Lambang negara di samping adalah?;garuda.jpg;Bintang;Pohon Beringin;Garuda;P
 TIU;Siapa penemu lampu?;(kosongkan);Tesla;Edison;Einstein;Grahambell;Newton;2
 ```
 
+Template tambahan:
+- `sample_questions.csv` / `sample_questions_semicolon.csv` untuk contoh umum
+- `sample_questions_cpns.csv` / `sample_questions_cpns_semicolon.csv` untuk contoh TWK/TIU/TKP yang lebih realistis
+
 ---
 
 ### Cara Import
 1. Login ke `/admin/`
 2. Klik **Categories** → **Import Questions from CSV**
 3. Pilih File:
-   - Upload **.csv** (jika teks saja)
-   - Upload **.zip** (jika ada gambar)
+   - Upload **.csv** atau **.xlsx** (jika teks saja)
+   - Upload **.zip** (jika ada gambar + file csv/xlsx)
 4. Klik **Upload and Import**
 5. Sistem otomatis mengekstrak & mencocokkan gambar. ✅
 
@@ -175,6 +252,15 @@ Upload file dengan format:
 - 4 pilihan: kosongkan choice_5
 - 5 pilihan: isi semua choice_1 sampai choice_5
 ```
+
+### 5. Dashboard Admin
+Beranda `/admin/` sekarang menampilkan statistik ringkas:
+- total user aktif/pending
+- total attempt dan attempt hari ini
+- total kategori, soal, dan opsi jawaban
+- rata-rata akurasi
+- kategori paling sering dikerjakan
+- attempt terbaru
 
 ---
 

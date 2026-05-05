@@ -15,7 +15,7 @@
                 {% endif %}
             </div>
             <h2 class="text-4xl font-bold mb-4 text-gray-900">Quiz Selesai!</h2>
-            <p class="text-gray-600 text-xl">{{ category.name }}</p>
+            <p class="text-gray-600 text-xl">{{ category.full_name }}</p>
         </div>
 
         <div class="bg-white border-2 border-gray-200 rounded-2xl p-12 mb-12 shadow-lg">
@@ -24,6 +24,26 @@
                 {{ score }}
             </div>
             <p class="text-2xl text-gray-600 mb-8 text-center">dari {{ total }} soal</p>
+            <div class="grid gap-4 md:grid-cols-2 mb-8">
+                <div class="rounded-2xl bg-blue-50 border border-blue-100 px-6 py-5 text-center">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">Attempt Kategori Ini</p>
+                    <p class="mt-2 text-3xl font-extrabold text-blue-900">{{ attempt_number }}</p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-6 py-5 text-center">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Personal Best</p>
+                    <p class="mt-2 text-3xl font-extrabold text-emerald-900">{{ personal_best|floatformat:0 }}%</p>
+                </div>
+            </div>
+            <div class="mb-8 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-5 text-center">
+                <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Mode Pengerjaan</p>
+                {% if timer_enabled %}
+                <p class="mt-2 text-2xl font-extrabold text-gray-900">Timer {{ timer_minutes }} menit</p>
+                <p class="mt-2 text-sm text-gray-600">Countdown aktif saat quiz dikerjakan.</p>
+                {% else %}
+                <p class="mt-2 text-2xl font-extrabold text-gray-900">Tanpa Timer</p>
+                <p class="mt-2 text-sm text-gray-600">User memilih mengerjakan tanpa batas waktu.</p>
+                {% endif %}
+            </div>
 
             <!-- Progress Bar -->
             <div class="bg-gray-200 h-4 rounded-full overflow-hidden mb-8">
@@ -109,6 +129,13 @@
                         </div>
                         {% endfor %}
                     </div>
+
+                    {% if item.question.explanation %}
+                    <div class="mt-4 ml-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                        <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">Pembahasan</p>
+                        <p class="mt-2 whitespace-pre-line text-sm leading-6 text-blue-950">{{ item.question.explanation }}</p>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -120,10 +147,16 @@
                 class="border-2 border-gray-300 hover:border-primary text-gray-700 hover:text-primary px-8 py-3 rounded-lg font-semibold transition">
                 ← Kembali ke Dashboard
             </a>
+            {% if remaining_attempts > 0 %}
             <a href="{% url 'take_quiz' category.id %}"
                 class="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-lg font-semibold transition">
                 Ulangi Quiz 🔄
             </a>
+            {% else %}
+            <div class="bg-gray-200 text-gray-500 px-8 py-3 rounded-lg font-semibold">
+                Batas attempt habis
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

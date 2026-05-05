@@ -2,90 +2,728 @@
 
 {% block content %}
 <section class="py-12 bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-6 max-w-4xl">
-        <!-- Header -->
-        <div class="bg-white rounded-2xl border-2 border-gray-200 p-6 mb-8 shadow-lg">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-3xl font-bold mb-2 text-gray-900">{{ category.name }}</h2>
-                    <p class="text-gray-600">{{ category.description }}</p>
-                </div>
-                <div class="text-right">
-                    <span class="inline-block bg-blue-100 text-blue-800 px-5 py-2 rounded-full font-bold">
-                        {{ questions.count }} Soal
-                    </span>
-                    {% if subscription.package != 'FREE' %}
-                    <p class="text-sm text-gray-500 mt-2">
-                        Sisa: <strong class="text-primary">{{ remaining_attempts }}x</strong>
-                    </p>
-                    {% endif %}
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="mb-5 sm:mb-6">
+            <div class="bg-white rounded-2xl border-2 border-gray-200 p-4 shadow-lg sm:p-5">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <h2 class="mb-1 text-2xl font-bold text-gray-900 sm:text-3xl">{{ category.name }}</h2>
+                        {% if category.parent %}
+                        <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">{{ category.parent.name }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-600 sm:text-base">{{ category.description }}</p>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 lg:min-w-[17rem] lg:justify-end">
+                        <div class="flex items-center gap-3">
+                            <span class="inline-block rounded-full bg-blue-100 px-4 py-1.5 font-bold text-blue-800">
+                                {{ questions.count }} Soal
+                            </span>
+                            {% if subscription.package != 'FREE' %}
+                            <p class="text-sm text-gray-500">
+                                Sisa: <strong class="text-primary">{{ remaining_attempts }}x</strong>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <form method="post" class="space-y-8">
+        <form method="post" class="space-y-6 lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-8 lg:space-y-0" id="quizForm">
             {% csrf_token %}
 
-            {% for question in questions %}
-            <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition">
-                <!-- Question Text -->
-                <div class="flex gap-4 mb-6">
-                    <div
-                        class="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
-                        {{ forloop.counter }}
+            <div class="lg:sticky lg:top-24 lg:self-start">
+                <div class="rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:p-5">
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Pagination Soal</p>
+                            <p id="miniNavigatorSummary" class="mt-1 text-sm font-semibold text-gray-700">
+                                {% if questions.count %}
+                                Soal 1 dari {{ questions.count }}. Tampilkan satu soal per halaman.
+                                {% else %}
+                                Belum ada soal pada kategori ini.
+                                {% endif %}
+                            </p>
+                            <p id="paginationAnsweredCount" class="mt-2 text-sm font-semibold text-emerald-700">
+                                0 dari {{ questions.count }} soal terjawab
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                Sudah dijawab
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                                <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                                Belum dijawab
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                                <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+                                Sedang dilihat
+                            </span>
+                        </div>
                     </div>
-                    <h4 class="text-xl font-medium text-gray-900 leading-relaxed pt-1">
-                        {{ question.text }}
-                    </h4>
+                    <div id="miniNavigator" class="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible"></div>
+                    <div class="mt-4 flex flex-col gap-3">
+                        <p class="text-sm text-gray-500">Pakai tombol sebelumnya/berikutnya untuk berpindah soal tanpa pindah halaman browser.</p>
+                        <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                            <button type="button" id="previousQuestionButton"
+                                class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                                Soal Sebelumnya
+                            </button>
+                            <button type="button" id="nextQuestionButton"
+                                class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                                Soal Berikutnya
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_17rem] xl:items-start">
+                    <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 shadow-sm sm:p-4">
+                        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Progress</p>
+                                <p id="answerProgressText" class="mt-1 text-sm font-bold text-emerald-900 sm:text-base">
+                                    0 dari {{ questions.count }} soal terjawab
+                                </p>
+                            </div>
+                            <p id="answerProgressHint" class="text-xs font-semibold text-emerald-700 sm:text-sm">
+                                Semua soal masih kosong.
+                            </p>
+                        </div>
+                        <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-emerald-100">
+                            <div id="answerProgressBar"
+                                class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-300">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                                <p class="text-xs font-semibold text-gray-700 sm:text-sm">Belum dijawab</p>
+                                <p id="unansweredSummaryText" class="text-xs text-gray-500 sm:text-sm">Belum ada jawaban yang terisi.</p>
+                            </div>
+                            <div id="unansweredList" class="mt-2 flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <p id="autosaveStatus" class="mt-3 text-xs font-semibold text-emerald-700 sm:text-sm">
+                            Jawaban tersimpan otomatis di browser ini.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div id="timerStatus"
+                            class="mb-2 rounded-full bg-blue-100 px-4 py-1.5 text-center text-xs font-semibold text-blue-700 sm:text-sm">
+                            Timer aktif {{ auto_timer_minutes }} menit
+                        </div>
+                        <div id="timerPanelShell" class="w-full lg:w-72">
+                            <div id="timerPanel"
+                                class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-center shadow-sm">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="text-left">
+                                        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">Timer</p>
+                                        <p id="timerLabel" class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">1 soal = 1 menit</p>
+                                    </div>
+                                    <p id="timerDisplay" class="text-3xl font-extrabold leading-none text-blue-900">--:--</p>
+                                </div>
+                                <p id="timerHint" class="mt-2 text-left text-xs text-blue-700">{{ auto_timer_minutes }} menit total untuk {{ questions.count }} soal.</p>
+                                <p id="timerWarning" class="mt-1 hidden text-left text-xs font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {% if question.image %}
-                <div class="ml-14 mb-6">
-                    <img src="{{ question.image.url }}" alt="Gambar Soal"
-                        class="rounded-lg shadow-md max-w-full h-auto max-h-96 object-contain border border-gray-200">
+                {% for question in questions %}
+                <div id="question-card-{{ forloop.counter }}" data-question-number="{{ forloop.counter }}"
+                    class="question-card bg-white border-2 border-gray-200 rounded-2xl p-4 shadow-sm transition hover:shadow-md sm:p-6">
+                    <!-- Question Text -->
+                    <div class="mb-4 flex flex-col gap-3 sm:flex-row">
+                        <div
+                            class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold text-white shadow-sm sm:h-10 sm:w-10 sm:text-lg">
+                            {{ forloop.counter }}
+                        </div>
+                        <h4 class="pt-0.5 text-base font-medium leading-relaxed text-gray-900 sm:text-lg">
+                            {{ question.text }}
+                        </h4>
+                    </div>
+                    <div class="mb-4 sm:ml-12">
+                        <span class="inline-flex rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 sm:text-sm">
+                            Soal {{ forloop.counter }} dari {{ questions.count }}
+                        </span>
+                    </div>
+
+                    {% if question.image %}
+                    <div class="mb-4 sm:ml-12">
+                        <img src="{{ question.image.url }}" alt="Gambar Soal"
+                            class="rounded-lg shadow-md max-w-full h-auto max-h-96 object-contain border border-gray-200">
+                    </div>
+                    {% endif %}
+
+                    <!-- Choices -->
+                    <div class="space-y-2.5 sm:ml-12">
+                        {% for choice in question.choices.all %}
+                        <label
+                            class="group relative flex cursor-pointer items-start overflow-hidden rounded-xl border-2 border-gray-100 p-3 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50">
+                            <div class="flex items-center h-6">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}"
+                                    class="w-5 h-5 text-primary border-gray-300 focus:ring-primary">
+                            </div>
+                            <span
+                                class="ml-3.5 select-none text-sm font-medium leading-6 text-gray-700 group-hover:text-gray-900 sm:text-base">
+                                {{ choice.text }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not questions %}
+                <div class="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-8 text-center text-gray-500 shadow-sm">
+                    Kategori ini belum memiliki soal untuk dikerjakan.
                 </div>
                 {% endif %}
 
-                <!-- Choices -->
-                <div class="space-y-3 ml-14">
-                    {% for choice in question.choices.all %}
-                    <label
-                        class="flex items-start p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group relative overflow-hidden">
-                        <div class="flex items-center h-6">
-                            <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" required
-                                class="w-5 h-5 text-primary border-gray-300 focus:ring-primary">
-                        </div>
-                        <span
-                            class="ml-4 text-gray-700 group-hover:text-gray-900 font-medium text-lg leading-6 select-none">
-                            {{ choice.text }}
-                        </span>
-                    </label>
-                    {% endfor %}
+                <!-- Footer Action -->
+                <div
+                    class="sticky bottom-0 z-20 flex flex-col gap-3 rounded-t-xl bg-gray-50/90 p-3 pt-4 pb-4 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-3">
+                    <a href="{% url 'dashboard' %}"
+                        class="flex items-center gap-2 rounded-lg px-4 py-2.5 font-semibold text-gray-600 transition hover:bg-gray-200 hover:text-primary">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Kembali
+                    </a>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <button type="button" id="previousQuestionFooterButton"
+                            class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                            Soal Sebelumnya
+                        </button>
+                        <button type="button" id="nextQuestionFooterButton"
+                            class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+                            Soal Berikutnya
+                        </button>
+                        <button type="button" id="openReviewModal"
+                            class="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg">
+                            Submit Jawaban
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            {% endfor %}
-
-            <!-- Footer Action -->
-            <div
-                class="flex justify-between items-center pt-8 pb-12 sticky bottom-0 bg-gray-50/90 backdrop-blur-sm p-4 rounded-t-xl z-20">
-                <a href="{% url 'dashboard' %}"
-                    class="flex items-center gap-2 text-gray-600 hover:text-primary font-semibold transition px-6 py-3 rounded-lg hover:bg-gray-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Kembali
-                </a>
-                <button type="submit"
-                    class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center gap-3">
-                    Submit Jawaban
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                </button>
             </div>
         </form>
     </div>
 </section>
+
+<div id="reviewModal" class="hidden fixed inset-0 z-50">
+    <div id="reviewModalBackdrop" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    <div class="relative flex min-h-full items-center justify-center p-6">
+        <div class="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">Review Sebelum Submit</p>
+                    <h3 class="mt-2 text-3xl font-bold text-gray-900">Periksa jawaban Anda dulu</h3>
+                    <p class="mt-2 text-gray-600">Pastikan tidak ada nomor yang terlewat sebelum jawaban dikirim.</p>
+                </div>
+                <button type="button" id="closeReviewModal"
+                    class="rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-900">
+                    Tutup
+                </button>
+            </div>
+
+            <div class="mt-6 grid gap-4 md:grid-cols-3">
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Sudah Dijawab</p>
+                    <p id="reviewAnsweredCount" class="mt-2 text-3xl font-extrabold text-emerald-900">0</p>
+                </div>
+                <div class="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-amber-700">Belum Dijawab</p>
+                    <p id="reviewUnansweredCount" class="mt-2 text-3xl font-extrabold text-amber-900">0</p>
+                </div>
+                <div class="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">Akurasi Isi</p>
+                    <p id="reviewCompletionRate" class="mt-2 text-3xl font-extrabold text-blue-900">0%</p>
+                </div>
+            </div>
+
+            <div class="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-5">
+                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <p class="text-sm font-semibold text-gray-700">Nomor yang masih kosong</p>
+                    <p id="reviewSummaryText" class="text-sm text-gray-500">Semua soal masih kosong.</p>
+                </div>
+                <div id="reviewUnansweredList" class="mt-4 flex flex-wrap gap-2"></div>
+            </div>
+
+            <div id="reviewCompletionBanner" class="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
+                Semua soal sudah terjawab. Anda siap submit.
+            </div>
+
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button type="button" id="reviewBackToQuiz"
+                    class="rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                    Kembali ke Quiz
+                </button>
+                <button type="button" id="confirmSubmitQuiz"
+                    class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
+                    Ya, Submit Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const form = document.getElementById("quizForm");
+        const openReviewModalButton = document.getElementById("openReviewModal");
+        const reviewModal = document.getElementById("reviewModal");
+        const reviewModalBackdrop = document.getElementById("reviewModalBackdrop");
+        const closeReviewModalButton = document.getElementById("closeReviewModal");
+        const reviewBackToQuizButton = document.getElementById("reviewBackToQuiz");
+        const confirmSubmitQuizButton = document.getElementById("confirmSubmitQuiz");
+        const reviewAnsweredCount = document.getElementById("reviewAnsweredCount");
+        const reviewUnansweredCount = document.getElementById("reviewUnansweredCount");
+        const reviewCompletionRate = document.getElementById("reviewCompletionRate");
+        const reviewSummaryText = document.getElementById("reviewSummaryText");
+        const reviewUnansweredList = document.getElementById("reviewUnansweredList");
+        const reviewCompletionBanner = document.getElementById("reviewCompletionBanner");
+        const previousQuestionButton = document.getElementById("previousQuestionButton");
+        const nextQuestionButton = document.getElementById("nextQuestionButton");
+        const previousQuestionFooterButton = document.getElementById("previousQuestionFooterButton");
+        const nextQuestionFooterButton = document.getElementById("nextQuestionFooterButton");
+        const timerDisplay = document.getElementById("timerDisplay");
+        const timerStatus = document.getElementById("timerStatus");
+        const paginationAnsweredCount = document.getElementById("paginationAnsweredCount");
+        const timerPanelShell = document.getElementById("timerPanelShell");
+        const timerPanel = document.getElementById("timerPanel");
+        const timerLabel = document.getElementById("timerLabel");
+        const timerHint = document.getElementById("timerHint");
+        const timerWarning = document.getElementById("timerWarning");
+        const autosaveStatus = document.getElementById("autosaveStatus");
+        const answerProgressText = document.getElementById("answerProgressText");
+        const answerProgressHint = document.getElementById("answerProgressHint");
+        const answerProgressBar = document.getElementById("answerProgressBar");
+        const unansweredSummaryText = document.getElementById("unansweredSummaryText");
+        const unansweredList = document.getElementById("unansweredList");
+        const miniNavigator = document.getElementById("miniNavigator");
+        const miniNavigatorSummary = document.getElementById("miniNavigatorSummary");
+        const choiceInputs = Array.from(document.querySelectorAll('input[type="radio"][name^="question_"]'));
+        const questionCards = Array.from(document.querySelectorAll(".question-card"));
+        const autosaveKey = "quiz-autosave-{{ request.user.id }}-{{ category.id }}";
+        const totalQuestions = {{ questions.count }};
+        const autoTimerMinutes = {{ auto_timer_minutes }};
+
+        if (!form || !openReviewModalButton || !reviewModal || !reviewModalBackdrop || !closeReviewModalButton || !reviewBackToQuizButton || !confirmSubmitQuizButton || !reviewAnsweredCount || !reviewUnansweredCount || !reviewCompletionRate || !reviewSummaryText || !reviewUnansweredList || !reviewCompletionBanner || !previousQuestionButton || !nextQuestionButton || !previousQuestionFooterButton || !nextQuestionFooterButton || !timerDisplay || !timerStatus || !paginationAnsweredCount || !timerPanelShell || !timerPanel || !timerLabel || !timerHint || !timerWarning || !autosaveStatus || !answerProgressText || !answerProgressHint || !answerProgressBar || !unansweredSummaryText || !unansweredList || !miniNavigator || !miniNavigatorSummary) {
+            return;
+        }
+
+        let countdownId = null;
+        let remainingSeconds = 0;
+        let isSubmitting = false;
+        let currentVisibleQuestion = 1;
+
+        const syncQuestionButtons = () => {
+            const noQuestions = totalQuestions === 0;
+            const isFirstQuestion = noQuestions || currentVisibleQuestion === 1;
+            const isLastQuestion = noQuestions || currentVisibleQuestion === totalQuestions;
+
+            [previousQuestionButton, previousQuestionFooterButton].forEach((button) => {
+                button.disabled = isFirstQuestion;
+                button.classList.toggle("opacity-50", isFirstQuestion);
+                button.classList.toggle("cursor-not-allowed", isFirstQuestion);
+            });
+
+            [nextQuestionButton, nextQuestionFooterButton].forEach((button) => {
+                button.disabled = isLastQuestion;
+                button.classList.toggle("opacity-50", isLastQuestion);
+                button.classList.toggle("cursor-not-allowed", isLastQuestion);
+            });
+        };
+
+        const showQuestion = (questionNumber) => {
+            if (totalQuestions === 0) {
+                currentVisibleQuestion = 0;
+                miniNavigatorSummary.textContent = "Belum ada soal pada kategori ini.";
+                syncQuestionButtons();
+                renderMiniNavigator();
+                return;
+            }
+
+            const safeQuestionNumber = Math.min(Math.max(questionNumber, 1), totalQuestions);
+            currentVisibleQuestion = safeQuestionNumber;
+
+            questionCards.forEach((card, index) => {
+                const isActive = index + 1 === safeQuestionNumber;
+                card.classList.toggle("hidden", !isActive);
+                card.classList.toggle("ring-2", isActive);
+                card.classList.toggle("ring-blue-100", isActive);
+            });
+
+            miniNavigatorSummary.textContent = `Soal ${safeQuestionNumber} dari ${totalQuestions}. Tampilkan satu soal per halaman.`;
+            syncQuestionButtons();
+            renderMiniNavigator();
+        };
+
+        const formatTime = (seconds) => {
+            const safeSeconds = Math.max(0, seconds);
+            const minutes = String(Math.floor(safeSeconds / 60)).padStart(2, "0");
+            const secs = String(safeSeconds % 60).padStart(2, "0");
+            return `${minutes}:${secs}`;
+        };
+
+        const stopTimer = () => {
+            if (countdownId) {
+                window.clearInterval(countdownId);
+                countdownId = null;
+            }
+        };
+
+        const updateAutosaveStatus = (message, tone = "emerald") => {
+            const tones = {
+                emerald: "mt-3 text-sm font-semibold text-emerald-700",
+                amber: "mt-3 text-sm font-semibold text-amber-700",
+                red: "mt-3 text-sm font-semibold text-red-700",
+            };
+            autosaveStatus.className = tones[tone] || tones.emerald;
+            autosaveStatus.textContent = message;
+        };
+
+        const saveAutosave = () => {
+            const selectedAnswers = {};
+            choiceInputs.forEach((input) => {
+                if (input.checked) {
+                    selectedAnswers[input.name] = input.value;
+                }
+            });
+
+            const payload = {
+                selectedAnswers,
+                currentQuestion: currentVisibleQuestion,
+                savedAt: new Date().toISOString(),
+            };
+            window.localStorage.setItem(autosaveKey, JSON.stringify(payload));
+            updateAutosaveStatus("Progress tersimpan otomatis di browser ini.");
+        };
+
+        const clearAutosave = () => {
+            window.localStorage.removeItem(autosaveKey);
+            updateAutosaveStatus("Progress quiz ini sudah dikirim.");
+        };
+
+        const hasQuizProgress = () => {
+            const hasCheckedAnswer = choiceInputs.some((input) => input.checked);
+            const hasAutosave = Boolean(window.localStorage.getItem(autosaveKey));
+            return hasCheckedAnswer || hasAutosave;
+        };
+
+        const renderMiniNavigator = () => {
+            miniNavigator.innerHTML = "";
+            if (totalQuestions === 0) {
+                return;
+            }
+            const answeredNames = new Set(
+                choiceInputs.filter((input) => input.checked).map((input) => input.name)
+            );
+
+            questionCards.forEach((card, index) => {
+                const questionNumber = index + 1;
+                const firstInput = card.querySelector('input[type="radio"]');
+                const questionName = firstInput ? firstInput.name : "";
+                const isAnswered = answeredNames.has(questionName);
+                const isCurrent = currentVisibleQuestion === questionNumber;
+                const button = document.createElement("button");
+                button.type = "button";
+                button.textContent = questionNumber;
+                button.className = "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-bold transition";
+                button.dataset.questionTarget = questionNumber;
+
+                if (isCurrent) {
+                    button.classList.add("border-blue-300", "bg-blue-100", "text-blue-800", "shadow-sm");
+                } else if (isAnswered) {
+                    button.classList.add("border-emerald-300", "bg-emerald-50", "text-emerald-700");
+                } else {
+                    button.classList.add("border-amber-300", "bg-amber-50", "text-amber-700");
+                }
+
+                button.addEventListener("click", () => {
+                    showQuestion(questionNumber);
+                    saveAutosave();
+                });
+
+                miniNavigator.appendChild(button);
+            });
+        };
+
+        const getAnsweredQuestionNames = () => (
+            new Set(choiceInputs.filter((input) => input.checked).map((input) => input.name))
+        );
+
+        const getUnansweredQuestionNumbers = () => {
+            const answeredNames = getAnsweredQuestionNames();
+            return questionCards.flatMap((card, index) => {
+                const firstInput = card.querySelector('input[type="radio"]');
+                if (!firstInput || answeredNames.has(firstInput.name)) {
+                    return [];
+                }
+                return [index + 1];
+            });
+        };
+
+        const closeReviewModal = () => {
+            reviewModal.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        };
+
+        const openReviewModal = () => {
+            const unansweredNumbers = getUnansweredQuestionNumbers();
+            const answeredCount = totalQuestions - unansweredNumbers.length;
+            const completionRate = totalQuestions > 0
+                ? Math.round((answeredCount / totalQuestions) * 100)
+                : 0;
+
+            reviewAnsweredCount.textContent = answeredCount;
+            reviewUnansweredCount.textContent = unansweredNumbers.length;
+            reviewCompletionRate.textContent = `${completionRate}%`;
+            reviewUnansweredList.innerHTML = "";
+
+            if (unansweredNumbers.length === 0) {
+                reviewSummaryText.textContent = "Semua soal sudah terisi.";
+                reviewCompletionBanner.classList.remove("hidden");
+            } else {
+                reviewSummaryText.textContent = `Masih ada ${unansweredNumbers.length} nomor yang belum dijawab.`;
+                reviewCompletionBanner.classList.add("hidden");
+
+                unansweredNumbers.forEach((questionNumber) => {
+                    const link = document.createElement("button");
+                    link.type = "button";
+                    link.textContent = questionNumber;
+                    link.className = "inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-amber-300 bg-white px-3 text-sm font-bold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100";
+                    link.addEventListener("click", () => {
+                        closeReviewModal();
+                        showQuestion(questionNumber);
+                    });
+                    reviewUnansweredList.appendChild(link);
+                });
+            }
+
+            reviewModal.classList.remove("hidden");
+            document.body.classList.add("overflow-hidden");
+        };
+
+        const updateAnswerProgress = () => {
+            const answeredQuestions = getAnsweredQuestionNames().size;
+            const percentage = totalQuestions > 0
+                ? Math.round((answeredQuestions / totalQuestions) * 100)
+                : 0;
+
+            answerProgressText.textContent = `${answeredQuestions} dari ${totalQuestions} soal terjawab`;
+            paginationAnsweredCount.textContent = `${answeredQuestions} dari ${totalQuestions} soal terjawab`;
+            answerProgressBar.style.width = `${percentage}%`;
+            unansweredList.innerHTML = "";
+
+            const unansweredNumbers = [];
+            questionCards.forEach((card, index) => {
+                const questionNumber = index + 1;
+                const questionName = `question_${card.querySelector('input[type="radio"]').name.split("_")[1]}`;
+                const isAnswered = choiceInputs.some((input) => input.name === questionName && input.checked);
+
+                if (isAnswered) {
+                    card.classList.remove("border-amber-300", "bg-amber-50/40");
+                    card.classList.add("border-gray-200");
+                    return;
+                }
+
+                unansweredNumbers.push(questionNumber);
+                card.classList.remove("border-gray-200");
+                card.classList.add("border-amber-300", "bg-amber-50/40");
+
+                const link = document.createElement("button");
+                link.type = "button";
+                link.textContent = questionNumber;
+                link.className = "inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-amber-300 bg-white px-3 text-sm font-bold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100";
+                link.addEventListener("click", () => {
+                    showQuestion(questionNumber);
+                    saveAutosave();
+                });
+                unansweredList.appendChild(link);
+            });
+
+            renderMiniNavigator();
+
+            if (answeredQuestions === 0) {
+                answerProgressHint.textContent = "Semua soal masih kosong.";
+                answerProgressHint.className = "text-sm font-semibold text-emerald-700";
+                unansweredSummaryText.textContent = "Gunakan daftar ini untuk mulai dari soal mana pun.";
+                return;
+            }
+
+            if (answeredQuestions === totalQuestions) {
+                answerProgressHint.textContent = "Semua soal sudah terisi. Anda siap submit.";
+                answerProgressHint.className = "text-sm font-semibold text-emerald-700";
+                unansweredSummaryText.textContent = "Semua nomor sudah terjawab.";
+                return;
+            }
+
+            answerProgressHint.textContent = `${totalQuestions - answeredQuestions} soal belum dijawab.`;
+            answerProgressHint.className = "text-sm font-semibold text-amber-700";
+            unansweredSummaryText.textContent = `Masih ada ${unansweredNumbers.length} nomor yang perlu Anda cek.`;
+        };
+
+        const restoreAutosave = () => {
+            const rawValue = window.localStorage.getItem(autosaveKey);
+            if (!rawValue) {
+                return false;
+            }
+
+            try {
+                const payload = JSON.parse(rawValue);
+                if (payload.currentQuestion) {
+                    currentVisibleQuestion = Number.parseInt(payload.currentQuestion, 10) || 1;
+                }
+
+                Object.entries(payload.selectedAnswers || {}).forEach(([name, value]) => {
+                    const input = form.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (input) {
+                        input.checked = true;
+                    }
+                });
+
+                updateAutosaveStatus("Progress sebelumnya dipulihkan dari browser ini.", "amber");
+                updateAnswerProgress();
+                return true;
+            } catch (error) {
+                window.localStorage.removeItem(autosaveKey);
+                updateAutosaveStatus("Data autosave lama tidak valid dan sudah dibersihkan.", "red");
+                return false;
+            }
+        };
+
+        const updateTimerVisualState = (seconds) => {
+            timerPanelShell.className = "w-full lg:w-72";
+            if (seconds <= 60) {
+                timerStatus.className = "rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-700";
+                timerPanel.className = "rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-center shadow-sm";
+                timerLabel.className = "mt-1 text-[11px] font-semibold uppercase tracking-wide text-red-700";
+                timerDisplay.className = "text-3xl font-extrabold leading-none text-red-900";
+                timerHint.className = "mt-2 text-left text-xs text-red-700";
+                timerHint.textContent = "Selesaikan jawaban terakhir.";
+                timerWarning.className = "mt-1 text-left text-xs font-semibold text-red-700";
+                timerWarning.textContent = "Kurang dari 1 menit.";
+                return;
+            }
+
+            if (seconds <= 300) {
+                timerStatus.className = "rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700";
+                timerPanel.className = "rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-center shadow-sm";
+                timerLabel.className = "mt-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700";
+                timerDisplay.className = "text-3xl font-extrabold leading-none text-amber-900";
+                timerHint.className = "mt-2 text-left text-xs text-amber-700";
+                timerHint.textContent = "Masuk 5 menit terakhir.";
+                timerWarning.className = "mt-1 text-left text-xs font-semibold text-amber-700";
+                timerWarning.textContent = "Kurang dari 5 menit.";
+                return;
+            }
+
+            timerStatus.className = "rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700";
+            timerPanel.className = "rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-center shadow-sm";
+            timerLabel.className = "mt-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700";
+            timerDisplay.className = "text-3xl font-extrabold leading-none text-blue-900";
+            timerHint.className = "mt-2 text-left text-xs text-blue-700";
+            timerHint.textContent = `${autoTimerMinutes} menit total untuk ${totalQuestions} soal.`;
+            timerWarning.className = "mt-1 hidden text-left text-xs font-semibold";
+            timerWarning.textContent = "";
+        };
+
+        const startTimer = () => {
+            if (totalQuestions === 0) {
+                stopTimer();
+                timerDisplay.textContent = "00:00";
+                timerStatus.textContent = "Belum ada soal";
+                timerHint.textContent = "Kategori ini belum memiliki soal untuk dikerjakan.";
+                timerWarning.className = "mt-3 hidden text-sm font-semibold";
+                timerWarning.textContent = "";
+                return;
+            }
+
+            remainingSeconds = autoTimerMinutes * 60;
+            timerDisplay.textContent = formatTime(remainingSeconds);
+            timerStatus.textContent = `Timer aktif ${autoTimerMinutes} menit`;
+            updateTimerVisualState(remainingSeconds);
+
+            stopTimer();
+            countdownId = window.setInterval(() => {
+                remainingSeconds -= 1;
+                timerDisplay.textContent = formatTime(remainingSeconds);
+                updateTimerVisualState(remainingSeconds);
+
+                if (remainingSeconds <= 0) {
+                    stopTimer();
+                    timerStatus.textContent = "Waktu habis. Jawaban akan dikirim.";
+                    timerHint.textContent = "Jawaban akan dikirim otomatis.";
+                    timerWarning.className = "mt-1 text-left text-xs font-semibold text-red-700";
+                    timerWarning.textContent = "Waktu habis.";
+                    clearAutosave();
+                    form.submit();
+                }
+            }, 1000);
+        };
+
+        choiceInputs.forEach((input) => {
+            input.addEventListener("change", () => {
+                updateAnswerProgress();
+                saveAutosave();
+            });
+        });
+        previousQuestionButton.addEventListener("click", () => {
+            showQuestion(currentVisibleQuestion - 1);
+            saveAutosave();
+        });
+        nextQuestionButton.addEventListener("click", () => {
+            showQuestion(currentVisibleQuestion + 1);
+            saveAutosave();
+        });
+        previousQuestionFooterButton.addEventListener("click", () => {
+            showQuestion(currentVisibleQuestion - 1);
+            saveAutosave();
+        });
+        nextQuestionFooterButton.addEventListener("click", () => {
+            showQuestion(currentVisibleQuestion + 1);
+            saveAutosave();
+        });
+        openReviewModalButton.addEventListener("click", openReviewModal);
+        closeReviewModalButton.addEventListener("click", closeReviewModal);
+        reviewBackToQuizButton.addEventListener("click", closeReviewModal);
+        reviewModalBackdrop.addEventListener("click", closeReviewModal);
+        confirmSubmitQuizButton.addEventListener("click", () => {
+            closeReviewModal();
+            form.requestSubmit();
+        });
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !reviewModal.classList.contains("hidden")) {
+                closeReviewModal();
+            }
+        });
+        form.addEventListener("submit", () => {
+            isSubmitting = true;
+            stopTimer();
+            clearAutosave();
+        });
+        window.addEventListener("beforeunload", (event) => {
+            if (isSubmitting || !hasQuizProgress()) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue = "";
+        });
+
+        restoreAutosave();
+        updateAnswerProgress();
+        showQuestion(currentVisibleQuestion);
+        startTimer();
+    })();
+</script>
 {% endblock %}

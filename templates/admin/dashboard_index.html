@@ -1,0 +1,125 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="display: grid; gap: 24px;">
+    <section style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); border: 1px solid #e5e7eb;">
+        <div style="display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+            <div>
+                <h1 style="margin: 0; font-size: 28px; color: #111827;">Admin Dashboard</h1>
+                <p style="margin: 8px 0 0; color: #6b7280;">Ringkasan user, kategori, dan performa quiz terbaru.</p>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="{% url 'admin:export_questions_template' %}" style="display: inline-flex; align-items: center; justify-content: center; background: #0f766e; color: white; text-decoration: none; padding: 12px 18px; border-radius: 12px; font-weight: 600;">
+                    Download Template XLSX
+                </a>
+                <a href="{% url 'admin:import_questions' %}" style="display: inline-flex; align-items: center; justify-content: center; background: #2563eb; color: white; text-decoration: none; padding: 12px 18px; border-radius: 12px; font-weight: 600;">
+                    Import Soal CSV / XLSX / ZIP
+                </a>
+            </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 24px;">
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 18px;">
+                <p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #1d4ed8;">Total User</p>
+                <p style="margin: 12px 0 0; font-size: 32px; font-weight: 800; color: #1e3a8a;">{{ admin_stats.total_users }}</p>
+                <p style="margin: 8px 0 0; color: #475569;">{{ admin_stats.active_users }} aktif · {{ admin_stats.pending_users }} pending</p>
+            </div>
+            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 18px;">
+                <p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #047857;">Total Attempt</p>
+                <p style="margin: 12px 0 0; font-size: 32px; font-weight: 800; color: #065f46;">{{ admin_stats.total_attempts }}</p>
+                <p style="margin: 8px 0 0; color: #475569;">{{ admin_stats.attempts_today }} attempt hari ini</p>
+            </div>
+            <div style="background: #fff7ed; border: 1px solid #fdba74; border-radius: 14px; padding: 18px;">
+                <p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #c2410c;">Bank Soal</p>
+                <p style="margin: 12px 0 0; font-size: 32px; font-weight: 800; color: #9a3412;">{{ admin_stats.total_questions }}</p>
+                <p style="margin: 8px 0 0; color: #475569;">{{ admin_stats.total_categories }} kategori · {{ admin_stats.total_choices }} opsi jawaban</p>
+            </div>
+            <div style="background: #faf5ff; border: 1px solid #d8b4fe; border-radius: 14px; padding: 18px;">
+                <p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #7e22ce;">Rata-rata Akurasi</p>
+                <p style="margin: 12px 0 0; font-size: 32px; font-weight: 800; color: #6b21a8;">{{ admin_stats.average_accuracy|floatformat:0 }}%</p>
+                <p style="margin: 8px 0 0; color: #475569;">{{ admin_stats.premium_categories }} kategori premium</p>
+            </div>
+        </div>
+    </section>
+
+    <section style="display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); border: 1px solid #e5e7eb;">
+            <h2 style="margin: 0 0 16px; font-size: 20px; color: #111827;">Kategori Paling Sering Dikerjakan</h2>
+            {% if admin_stats.top_categories %}
+            <div style="display: grid; gap: 12px;">
+                {% for category in admin_stats.top_categories %}
+                <div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e5e7eb;">
+                    <div>
+                        <p style="margin: 0; font-weight: 700; color: #111827;">{{ category.full_name }}</p>
+                        <p style="margin: 6px 0 0; color: #6b7280;">{{ category.description|default:"Tanpa deskripsi" }}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0; font-size: 22px; font-weight: 800; color: #2563eb;">{{ category.attempt_count }}</p>
+                        <p style="margin: 6px 0 0; color: #6b7280;">attempt</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="margin: 0; color: #6b7280;">Belum ada attempt yang tercatat.</p>
+            {% endif %}
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); border: 1px solid #e5e7eb;">
+            <h2 style="margin: 0 0 16px; font-size: 20px; color: #111827;">Attempt Terbaru</h2>
+            {% if admin_stats.recent_attempts %}
+            <div style="display: grid; gap: 12px;">
+                {% for attempt in admin_stats.recent_attempts %}
+                <div style="padding: 14px 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e5e7eb;">
+                    <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center;">
+                        <div>
+                            <p style="margin: 0; font-weight: 700; color: #111827;">{{ attempt.user.username }} · {{ attempt.category.full_name }}</p>
+                            <p style="margin: 6px 0 0; color: #6b7280;">{{ attempt.completed_at|date:"d M Y, H:i" }}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0; font-size: 22px; font-weight: 800; color: #059669;">{{ attempt.score }}/{{ attempt.total_questions }}</p>
+                            <p style="margin: 6px 0 0; color: #6b7280;">hasil</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="margin: 0; color: #6b7280;">Belum ada riwayat attempt.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); border: 1px solid #e5e7eb;">
+        <h2 style="margin: 0 0 16px; font-size: 20px; color: #111827;">Admin Modules</h2>
+        {% if app_list %}
+        <div style="display: grid; gap: 16px;">
+            {% for app in app_list %}
+            <div style="border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden;">
+                <div style="background: #f8fafc; padding: 14px 16px; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0; font-size: 16px; color: #111827;">{{ app.name }}</h3>
+                </div>
+                <div style="padding: 12px 16px; display: grid; gap: 12px;">
+                    {% for model in app.models %}
+                    <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center;">
+                        <span style="font-weight: 600; color: #111827;">{{ model.name }}</span>
+                        <span style="display: inline-flex; gap: 8px;">
+                            {% if model.admin_url %}
+                            <a href="{{ model.admin_url }}" style="color: #2563eb; text-decoration: none; font-weight: 600;">Lihat</a>
+                            {% endif %}
+                            {% if model.add_url %}
+                            <a href="{{ model.add_url }}" style="color: #059669; text-decoration: none; font-weight: 600;">Tambah</a>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="margin: 0; color: #6b7280;">Tidak ada modul admin yang tersedia.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

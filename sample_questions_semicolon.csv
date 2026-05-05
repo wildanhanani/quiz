@@ -6,3 +6,13 @@ TIU;Tes Intelegensi Umum;Hasil dari 10 + 5 adalah?;4;10;12;15;18;20;3
 TKP;Tes Karakteristik Pribadi;Jika menemukan uang di jalan, Anda akan?;5;Mengambilnya;Melaporkan ke polisi;Membiarkannya;Memberikan ke orang lain;Menyimpannya dulu;2
 Matematika;Soal matematika dasar;Berapa hasil 2 + 2?;6;3;4;5;6;;2
 Bahasa Indonesia;Tata bahasa dan ejaan;Kata baku yang benar adalah?;7;Aktifitas;Aktivitas;Aktipitas;Aktiftas;;2
+TWK;Tes Wawasan Kebangsaan;Bhinneka Tunggal Ika memiliki arti?;8;Bersatu kita teguh;Berbeda-beda tetapi tetap satu;Sekali merdeka tetap merdeka;Rakyat adalah sumber kekuasaan;;2
+TWK;Tes Wawasan Kebangsaan;Tanggal Proklamasi Kemerdekaan Indonesia adalah?;9;1 Juni 1945;17 Agustus 1945;18 Agustus 1945;28 Oktober 1928;;2
+TIU;Tes Intelegensi Umum;Jika 2 4 8 16 maka angka berikutnya adalah?;10;18;24;32;36;;3
+TIU;Tes Intelegensi Umum;Harga 3 buku Rp45.000 maka harga 5 buku adalah?;11;Rp60.000;Rp65.000;Rp70.000;Rp75.000;;4
+TKP;Tes Karakteristik Pribadi;Saat rekan tim tertinggal target Anda akan?;12;Menyalahkannya di depan tim;Membantu menyusun solusi dan prioritas;Diam saja agar tidak terlibat;Melaporkan tanpa berdiskusi;Mengerjakan semua sendiri tanpa komunikasi;2
+Teknologi;Tes teknologi dasar;Perintah Git untuk mengirim commit ke remote repository adalah?;13;git clone;git push;git reset;git status;;2
+Teknologi;Tes teknologi dasar;HTTP status code untuk halaman tidak ditemukan adalah?;14;200;201;404;500;;3
+Bahasa Indonesia;Tata bahasa dan ejaan;Sinonim kata cermat adalah?;15;Ceroboh;Teliti;Lambat;Bimbang;;2
+Bahasa Indonesia;Tata bahasa dan ejaan;Antonim kata optimis adalah?;16;Semangat;Antusias;Pesimis;Kreatif;;3
+Matematika;Soal matematika dasar;Hasil dari 12 x 8 adalah?;17;86;94;96;108;;3

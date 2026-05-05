@@ -1,0 +1,34 @@
+BAHAS PER/SOAL:
+
+‘Simbol > berart lebih cermat, dan simbol< berart! lebih ceroboh.
+Keterangan berdasarkan bacaan diperoleh bahwa tingkat
+kecermatan:
+
+-Ali> Budi
+
+Ali < Deni atau Deni> Alt
+Mardi > Deni
+
+LUrutan dart yang paling cermat
+Mardi> Deni> Ali> Budi
+
+Jawabane A
+
+16. Xebih tua dari NE lebih muda dari A, T lebih muda dari N,X lebih muda
+dari E,N lebih tua dai T, maka yang termuda adalah
+
+none
+
+BAHAS PER/SOAL:
+‘Simbol > berarti lebih tua, dan < berat lebih muda
+
+X>NatauN<x
+Fea
+Ten
+X<e
+N>TatauT<N
+
+Urutan dart yang paling muda: <N<X<E<A
+Maka, yang paling muda adalah T.
+
+Jawaban:D

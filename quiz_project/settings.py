@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 import environ
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,20 +22,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+APP_ENV = env.str('APP_ENV', default='development').strip().lower()
+IS_PRODUCTION = APP_ENV == 'production'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env(
+    'SECRET_KEY',
+    default=None if IS_PRODUCTION else 'django-insecure-dev-only-key',
+)
+if IS_PRODUCTION:
+    if not SECRET_KEY:
+        raise ImproperlyConfigured('SECRET_KEY wajib diisi saat APP_ENV=production.')
+    if SECRET_KEY.startswith('django-insecure-'):
+        raise ImproperlyConfigured(
+            'SECRET_KEY production tidak boleh memakai nilai default Django.'
+        )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=not IS_PRODUCTION)
 
-ALLOWED_HOSTS = [
-     "localhost",
-    "127.0.0.1",
-    ".ngrok-free.dev",
-]
+ALLOWED_HOSTS = env.list(
+    'ALLOWED_HOSTS',
+    default=[] if IS_PRODUCTION else ['localhost', '127.0.0.1', 'testserver', '.ngrok-free.dev'],
+)
 
 # Application definition
 
@@ -69,7 +82,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-SITE_ID = 1
+SITE_ID = env.int('SITE_ID', default=1)
+SITE_DOMAIN = env.str('SITE_DOMAIN', default='localhost:8000')
+SITE_NAME = env.str('SITE_NAME', default='BelajarUji')
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -88,6 +103,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
@@ -115,9 +132,16 @@ WSGI_APPLICATION = 'quiz_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': env.db_url('DATABASE_URL', default=f"postgres://{env('DB_USER')}:{env('DB_PASSWORD')}@{env('DB_HOST')}:{env('DB_PORT')}/{env('DB_NAME')}")
-# }
+db_name = env.str('DB_NAME', default='')
+default_database_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+if db_name:
+    db_user = env.str('DB_USER', default='postgres')
+    db_password = env.str('DB_PASSWORD', default='postgres')
+    db_host = env.str('DB_HOST', default='127.0.0.1')
+    db_port = env.str('DB_PORT', default='5432')
+    default_database_url = (
+        f"postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    )
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -138,25 +162,20 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "quiz", 
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
-    }
+    'default': env.db_url('DATABASE_URL', default=default_database_url)
 }
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.dev",
-]
+
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=[] if IS_PRODUCTION else ['https://*.ngrok-free.dev'],
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = env.str('LANGUAGE_CODE', default='en-us')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = env.str('TIME_ZONE', default='UTC')
 
 USE_I18N = True
 
@@ -165,8 +184,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': env.str(
+            'STATICFILES_STORAGE_BACKEND',
+            default='django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+            if IS_PRODUCTION
+            else 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        ),
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -181,7 +215,87 @@ LOGOUT_REDIRECT_URL = 'index'
 LOGIN_URL = 'login'
 
 # Security settings for ngrok/proxy
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+SECURE_PROXY_SSL_HEADER = (
+    ('HTTP_X_FORWARDED_PROTO', 'https')
+    if env.bool('USE_PROXY_SSL_HEADER', default=IS_PRODUCTION)
+    else None
+)
+USE_X_FORWARDED_HOST = env.bool('USE_X_FORWARDED_HOST', default=IS_PRODUCTION)
+USE_X_FORWARDED_PORT = env.bool('USE_X_FORWARDED_PORT', default=IS_PRODUCTION)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = env.str(
+    'ACCOUNT_DEFAULT_HTTP_PROTOCOL',
+    default='https' if IS_PRODUCTION else 'http',
+)
+
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=IS_PRODUCTION)
+SECURE_REDIRECT_EXEMPT = env.list(
+    'SECURE_REDIRECT_EXEMPT',
+    default=['healthz'] if IS_PRODUCTION else [],
+)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=IS_PRODUCTION)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=IS_PRODUCTION)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = env.str('SESSION_COOKIE_SAMESITE', default='Lax')
+CSRF_COOKIE_SAMESITE = env.str('CSRF_COOKIE_SAMESITE', default='Lax')
+SECURE_HSTS_SECONDS = env.int(
+    'SECURE_HSTS_SECONDS',
+    default=31536000 if IS_PRODUCTION else 0,
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
+    'SECURE_HSTS_INCLUDE_SUBDOMAINS',
+    default=IS_PRODUCTION,
+)
+SECURE_HSTS_PRELOAD = env.bool(
+    'SECURE_HSTS_PRELOAD',
+    default=IS_PRODUCTION,
+)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = env.str('SECURE_REFERRER_POLICY', default='same-origin')
+SECURE_CROSS_ORIGIN_OPENER_POLICY = env.str(
+    'SECURE_CROSS_ORIGIN_OPENER_POLICY',
+    default='same-origin',
+)
+X_FRAME_OPTIONS = env.str('X_FRAME_OPTIONS', default='DENY')
+
+LOG_LEVEL = env.str('LOG_LEVEL', default='INFO')
+DJANGO_LOG_LEVEL = env.str(
+    'DJANGO_LOG_LEVEL',
+    default='INFO' if IS_PRODUCTION else 'WARNING',
+)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s %(levelname)s [%(name)s] %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}

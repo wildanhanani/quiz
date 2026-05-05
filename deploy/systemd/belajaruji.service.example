@@ -1,0 +1,16 @@
+[Unit]
+Description=BelajarUji Gunicorn Service
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/belajaruji
+EnvironmentFile=/srv/belajaruji/.env
+ExecStart=/srv/belajaruji/scripts/run_gunicorn.sh
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

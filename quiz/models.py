@@ -1,9 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class Category(models.Model):
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        related_name='subcategories',
+        null=True,
+        blank=True,
+        help_text='Kosongkan jika ini adalah kategori utama.',
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='category_images/', blank=True, null=True)
@@ -11,13 +21,25 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ['parent__name', 'name', 'id']
 
     def __str__(self):
+        return self.full_name
+
+    @property
+    def full_name(self):
+        if self.parent:
+            return f"{self.parent.name} - {self.name}"
         return self.name
+
+    @property
+    def effective_is_premium(self):
+        return self.is_premium or bool(self.parent and self.parent.is_premium)
 
 class Question(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()  # Changed from CharField to TextField for unlimited length
+    explanation = models.TextField(blank=True)
     image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     order = models.IntegerField(default=0)
 
@@ -43,11 +65,35 @@ class Subscription(models.Model):
     package = models.CharField(max_length=10, choices=PACKAGE_CHOICES, default='FREE')
     max_attempts_per_quiz = models.IntegerField(default=1)  # Changed from 999 to 1
     max_categories = models.IntegerField(default=999)
+    prefers_timer = models.BooleanField(default=False)
+    preferred_timer_minutes = models.PositiveIntegerField(default=20)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def ensure_for_user(cls, user):
+        subscription, _ = cls.objects.get_or_create(user=user)
+        return subscription
     
     def __str__(self):
         return f"{self.user.username} - {self.get_package_display()}"
+
+    def get_accessible_categories(self):
+        categories = Category.objects.exclude(
+            parent__isnull=True,
+            subcategories__isnull=False,
+            questions__isnull=True,
+        ).select_related('parent').distinct()
+
+        if self.package == 'PREMIUM':
+            return categories
+        if self.package == 'BASIC':
+            return categories[:self.max_categories]
+        return categories.filter(
+            is_premium=False,
+        ).filter(
+            Q(parent__isnull=True) | Q(parent__is_premium=False)
+        )
     
     def get_remaining_attempts(self, category):
         """Get remaining attempts for a specific category"""
@@ -59,19 +105,21 @@ class Subscription(models.Model):
     
     def can_access_category(self, category):
         """Check if user can access this category"""
+        if category.parent_id is None and category.subcategories.exists() and not category.questions.exists():
+            return False
         if self.package == 'PREMIUM':
             return True
-        elif self.package == 'BASIC':
-            # Basic can access up to 5 categories
-            return True  # We'll check count in view
-        else:
-            # Free can access non-premium categories
-            return not category.is_premium
+        if self.package == 'BASIC':
+            allowed_ids = list(
+                self.get_accessible_categories().values_list('id', flat=True)[:self.max_categories]
+            )
+            return category.id in allowed_ids
+        return not category.effective_is_premium
 
 @receiver(post_save, sender=User)
 def create_user_subscription(sender, instance, created, **kwargs):
     if created:
-        Subscription.objects.create(user=instance)
+        Subscription.ensure_for_user(instance)
 
 class QuizAttempt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -82,7 +130,7 @@ class QuizAttempt(models.Model):
     completed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.category.name} - {self.score}"
+        return f"{self.user.username} - {self.category.full_name} - {self.score}"
     
     @property
     def is_passed(self):

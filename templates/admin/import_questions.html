@@ -2,56 +2,66 @@
 
 {% block content %}
 <div style="max-width: 900px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px;">
-    <h1 style="color: #333; margin-bottom: 2rem;">Import Questions (CSV / ZIP)</h1>
+    <h1 style="color: #333; margin-bottom: 2rem;">Import Soal (CSV / XLSX / ZIP)</h1>
 
     <div
         style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border-left: 4px solid #2563eb;">
-        <h3 style="color: #1e40af; margin-bottom: 1rem;">📋 Instructions</h3>
+        <h3 style="color: #1e40af; margin-bottom: 1rem;">📋 Panduan</h3>
 
         <div class="mb-6">
-            <h4 style="color: #1e40af; margin-bottom: 0.5rem; font-weight: bold;">Option 1: CSV Only (Text Only)</h4>
-            <p style="color: #374151;">Upload a standard <code>.csv</code> file for text-only questions.</p>
+            <h4 style="color: #1e40af; margin-bottom: 0.5rem; font-weight: bold;">Opsi 1: CSV atau Excel (Soal Teks)</h4>
+            <p style="color: #374151;">Upload file <code>.csv</code> atau <code>.xlsx</code> untuk soal tanpa gambar.</p>
+            <p style="color: #374151; margin-top: 0.75rem;">
+                Butuh format siap isi?
+                <a href="{% url 'admin:export_questions_template' %}" style="color: #2563eb; font-weight: 600;">
+                    Download template Excel
+                </a>.
+            </p>
         </div>
 
         <div class="mb-6" style="margin-top: 1.5rem;">
-            <h4 style="color: #1e40af; margin-bottom: 0.5rem; font-weight: bold;">Option 2: ZIP File (With Images) 📸
+            <h4 style="color: #1e40af; margin-bottom: 0.5rem; font-weight: bold;">Opsi 2: File ZIP (Dengan Gambar) 📸
             </h4>
-            <p style="color: #374151;">To include images, create a <strong>.zip</strong> file containing:</p>
+            <p style="color: #374151;">Untuk menyertakan gambar, buat file <strong>.zip</strong> yang berisi:</p>
             <ol style="margin: 0.5rem 0 0 1.5rem; color: #374151;">
-                <li>Your <code>.csv</code> file</li>
-                <li>All your image files (jpg, png)</li>
+                <li>File <code>.csv</code> atau <code>.xlsx</code> Anda</li>
+                <li>Semua file gambar yang dipakai (jpg, png)</li>
             </ol>
-            <p style="color: #374151; margin-top: 0.5rem;">In your CSV, add an <strong>image</strong> column with the
-                exact filename (e.g., <code>soal1.jpg</code>).</p>
+            <p style="color: #374151; margin-top: 0.5rem;">Di file Anda, isi kolom <strong>image</strong> dengan nama file
+                yang sama persis, misalnya <code>soal1.jpg</code>.</p>
         </div>
 
-        <h4 style="color: #1e40af; margin-top: 2rem; margin-bottom: 1rem;">CSV Column Format:</h4>
+        <h4 style="color: #1e40af; margin-top: 2rem; margin-bottom: 1rem;">Format Kolom:</h4>
         <ul style="margin: 1rem 0; color: #374151; line-height: 1.8;">
-            <li><strong style="color: #1f2937;">category</strong> - Category name (e.g., "TWK")</li>
-            <li><strong style="color: #1f2937;">category_description</strong> - (Optional) Category description</li>
-            <li><strong style="color: #1f2937;">question</strong> - The question text</li>
-            <li><strong style="color: #1f2937;">image</strong> - (Optional) Image filename (e.g., 'question1.jpg') -
-                Requires ZIP upload</li>
-            <li><strong style="color: #1f2937;">order</strong> - Question order number (e.g., 1, 2, 3...)</li>
-            <li><strong style="color: #1f2937;">choice_1</strong> - First answer choice</li>
-            <li><strong style="color: #1f2937;">choice_2</strong> - Second answer choice</li>
-            <li><strong style="color: #1f2937;">choice_3</strong> - Third answer choice</li>
-            <li><strong style="color: #1f2937;">choice_4</strong> - Fourth answer choice</li>
-            <li><strong style="color: #1f2937;">choice_5</strong> - (Optional) Fifth answer choice</li>
-            <li><strong style="color: #1f2937;">correct_answer</strong> - Number of correct choice (1-5)</li>
+            <li><strong style="color: #1f2937;">parent_category</strong> - Opsional. Nama kategori utama, misalnya "CPNS"</li>
+            <li><strong style="color: #1f2937;">category</strong> - Nama kategori, misalnya "TWK 2024"</li>
+            <li><strong style="color: #1f2937;">category_description</strong> - Opsional. Deskripsi kategori</li>
+            <li><strong style="color: #1f2937;">question</strong> - Teks soal</li>
+            <li><strong style="color: #1f2937;">explanation</strong> - Opsional. Pembahasan jawaban</li>
+            <li><strong style="color: #1f2937;">image</strong> - Opsional. Nama file gambar, misalnya <code>question1.jpg</code>. Wajib upload via ZIP</li>
+            <li><strong style="color: #1f2937;">order</strong> - Nomor urut soal, misalnya 1, 2, 3</li>
+            <li><strong style="color: #1f2937;">choice_1</strong> - Pilihan jawaban pertama</li>
+            <li><strong style="color: #1f2937;">choice_2</strong> - Pilihan jawaban kedua</li>
+            <li><strong style="color: #1f2937;">choice_3</strong> - Pilihan jawaban ketiga</li>
+            <li><strong style="color: #1f2937;">choice_4</strong> - Pilihan jawaban keempat</li>
+            <li><strong style="color: #1f2937;">choice_5</strong> - Opsional. Pilihan jawaban kelima</li>
+            <li><strong style="color: #1f2937;">correct_answer</strong> - Nomor pilihan jawaban yang benar, 1-5</li>
         </ul>
+
+        <div style="background: #ecfeff; padding: 1rem; border-radius: 6px; margin-top: 1rem; border-left: 3px solid #0891b2;">
+            <p style="color: #155e75; margin: 0;"><strong>Template XLSX:</strong> Admin bisa download workbook siap pakai berisi header, satu contoh baris, dan sheet panduan.</p>
+        </div>
 
         <div
             style="background: #fef3c7; padding: 1rem; border-radius: 6px; margin-top: 1rem; border-left: 3px solid #f59e0b;">
-            <p style="color: #92400e; margin: 0;"><strong>💡 Note:</strong> Use semicolon (;) delimiter if your text
-                contains commas.</p>
+            <p style="color: #92400e; margin: 0;"><strong>💡 Catatan:</strong> Gunakan delimiter titik koma (<code>;</code>) jika teks Anda mengandung banyak koma.</p>
         </div>
 
-        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Example CSV Content:</h4>
+        <h4 style="color: #1e40af; margin-top: 1.5rem; margin-bottom: 0.5rem;">Contoh Isi Tabel:</h4>
         <pre
-            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">category;question;image;choice_1;choice_2;choice_3;choice_4;correct_answer
-TWK;Gambar di samping adalah?;pancasila.jpg;Bintang;Pohon;Rantai;Padi;1
-TIU;Hitung hasil berikut;rumus1.png;10;20;30;40;3</pre>
+            style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #1f2937; border: 1px solid #e5e7eb;">parent_category;category;question;explanation;image;choice_1;choice_2;choice_3;choice_4;correct_answer
+CPNS;TWK;Gambar di samping adalah?;Bintang adalah lambang sila pertama.;pancasila.jpg;Bintang;Pohon;Rantai;Padi;1
+CPNS;TIU;Hitung hasil berikut;9 + 1 = 10.;rumus1.png;10;20;30;40;1</pre>
     </div>
 
     <form method="post" enctype="multipart/form-data"
@@ -60,23 +70,23 @@ TIU;Hitung hasil berikut;rumus1.png;10;20;30;40;3</pre>
 
         <div style="margin-bottom: 1.5rem;">
             <label for="csv_file" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">
-                Select File (CSV or ZIP):
+                Pilih File (CSV, XLSX, atau ZIP):
             </label>
-            <input type="file" name="csv_file" id="csv_file" accept=".csv,.zip" required
+            <input type="file" name="csv_file" id="csv_file" accept=".csv,.xlsx,.zip" required
                 style="padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 6px; width: 100%; background: white; color: #1f2937;">
             <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem;">
-                Upload .csv only for text questions, or .zip (containing csv + images) for image support.
+                Upload `.csv` atau `.xlsx` untuk soal teks, atau `.zip` yang berisi file soal dan gambar untuk soal bergambar.
             </p>
         </div>
 
         <div style="display: flex; gap: 1rem;">
             <button type="submit"
                 style="background: #2563eb; color: white; padding: 0.75rem 2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem;">
-                Upload and Import
+                Upload dan Import
             </button>
             <a href="{% url 'admin:quiz_category_changelist' %}"
                 style="background: #6b7280; color: white; padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 600;">
-                Cancel
+                Batal
             </a>
         </div>
     </form>

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "🚀 ProQuiz Quick Start Script"
 echo "=============================="
 echo ""
@@ -14,22 +16,22 @@ fi
 echo "🔧 Activating virtual environment..."
 source venv/bin/activate
 
+# Install frontend dependencies
+if command -v npm >/dev/null 2>&1; then
+    echo "🎨 Installing frontend dependencies..."
+    npm install --silent
+    echo "🎨 Building local CSS bundle..."
+    npm run build:css >/dev/null
+fi
+
 # Install dependencies
 echo "📥 Installing dependencies..."
 pip install -q -r requirements.txt
 
 # Check if .env exists
 if [ ! -f ".env" ]; then
-    echo "⚙️  Creating .env file..."
-    cat > .env << EOF
-SECRET_KEY=django-insecure-change-me-in-production
-DEBUG=True
-DB_NAME=quiz
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=127.0.0.1
-DB_PORT=5432
-EOF
+    echo "⚙️  Creating .env file from .env.example..."
+    cp .env.example .env
     echo "✅ .env file created"
 fi
 
@@ -56,10 +58,13 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "🎯 Next steps:"
-echo "   1. Start server: python manage.py runserver"
+echo "   1. Start server: ./run_dev.sh"
 echo "   2. Visit: http://127.0.0.1:8000/"
 echo "   3. Admin: http://127.0.0.1:8000/admin/ (admin/admin)"
 echo "   4. Test user: testuser/test123"
+echo ""
+echo "💡 Default local mode uses SQLite."
+echo "   If you want PostgreSQL, edit .env and set DATABASE_URL or DB_* first."
 echo ""
 echo "📚 Documentation:"
 echo "   - README.md - Full documentation"

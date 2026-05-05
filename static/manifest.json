@@ -1,16 +1,50 @@
 {
-    "name": "Test Soal CPNS & BUMN",
-    "short_name": "TestSoal",
+    "name": "BelajarUji CPNS & BUMN",
+    "short_name": "BelajarUji",
+    "id": "/",
     "description": "Platform latihan soal dan tryout untuk CPNS dan BUMN",
-    "start_url": "/",
+    "start_url": "/?source=pwa",
     "scope": "/",
+    "lang": "id-ID",
+    "dir": "ltr",
     "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
     "background_color": "#ffffff",
     "theme_color": "#10b981",
     "orientation": "portrait-primary",
+    "prefer_related_applications": false,
     "categories": [
         "education",
         "productivity"
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "url": "/dashboard/",
+            "icons": [
+                {
+                    "src": "/static/images/icon-192x192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Riwayat Tryout",
+            "short_name": "Riwayat",
+            "url": "/history/",
+            "icons": [
+                {
+                    "src": "/static/images/icon-192x192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
     ],
     "icons": [
         {

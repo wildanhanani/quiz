@@ -36,41 +36,181 @@
         </div>
 
         {% if user.is_active or user.is_superuser %}
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-8">
+            <div class="bg-white rounded-2xl border-2 border-gray-200 p-5 shadow-lg">
+                <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Total Attempt</p>
+                <p class="mt-3 text-3xl font-extrabold text-gray-900">{{ analytics.total_attempts }}</p>
+                <p class="mt-2 text-sm text-gray-500">Semua tryout yang sudah Anda kerjakan.</p>
+            </div>
+            <div class="bg-white rounded-2xl border-2 border-gray-200 p-5 shadow-lg">
+                <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Rata-rata Akurasi</p>
+                <p class="mt-3 text-3xl font-extrabold text-primary">{{ analytics.average_percentage|floatformat:0 }}%</p>
+                <p class="mt-2 text-sm text-gray-500">Dihitung dari seluruh attempt yang tersimpan.</p>
+            </div>
+            <div class="bg-white rounded-2xl border-2 border-gray-200 p-5 shadow-lg">
+                <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Kategori Dikerjakan</p>
+                <p class="mt-3 text-3xl font-extrabold text-gray-900">{{ analytics.categories_completed }}</p>
+                <p class="mt-2 text-sm text-gray-500">Jumlah kategori yang sudah pernah Anda sentuh.</p>
+            </div>
+            <div class="bg-white rounded-2xl border-2 border-gray-200 p-5 shadow-lg">
+                <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Kategori Terkuat</p>
+                <p class="mt-3 text-2xl font-extrabold text-gray-900">
+                    {% if analytics.strongest_category %}
+                    {{ analytics.strongest_category.full_name }}
+                    {% else %}
+                    Belum ada
+                    {% endif %}
+                </p>
+                <p class="mt-2 text-sm text-gray-500">Kategori dengan performa terbaru terbaik.</p>
+            </div>
+        </div>
+
         <h3 class="text-2xl font-bold mb-6 text-gray-900">Kategori Soal Tersedia</h3>
 
-        {% if categories %}
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {% for category in categories %}
-            <div
-                class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-primary transition transform hover:-translate-y-1 shadow-lg">
-                <div class="p-6">
-                    <div class="flex justify-between items-start mb-3">
-                        <h4 class="text-xl font-bold text-gray-900">{{ category.name }}</h4>
-                        {% if category.is_premium %}
-                        <span
-                            class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">PREMIUM</span>
-                        {% endif %}
+        {% if grouped_categories or ungrouped_categories %}
+        <div class="space-y-8 mb-12">
+            {% for group in grouped_categories %}
+            <section class="bg-white border-2 border-gray-200 rounded-2xl p-6 shadow-lg">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-wide text-primary">Kategori Utama</p>
+                        <h4 class="mt-2 text-2xl font-bold text-gray-900">{{ group.parent.name }}</h4>
+                        <p class="mt-2 text-sm text-gray-600">{{ group.parent.description|default:"Pilih subkategori untuk mulai latihan." }}</p>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">
-                        {{ category.description|default:"Latihan soal untuk kategori ini." }}
-                    </p>
-                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>📝 {{ category.questions.count }} Soal</span>
-                        <span class="text-primary font-semibold">
-                            {{ subscription.get_remaining_attempts|default:"0" }}x tersisa
-                        </span>
-                    </div>
-                    <a href="{% url 'take_quiz' category.id %}"
-                        class="block text-center bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-lg font-semibold transition">
-                        Mulai Latihan →
-                    </a>
+                    {% if group.parent.is_premium %}
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">PREMIUM</span>
+                    {% endif %}
                 </div>
-            </div>
+                <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for category in group.subcategories %}
+                    <div
+                        class="bg-gray-50 border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-primary transition transform hover:-translate-y-1">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-3">
+                                <h5 class="text-xl font-bold text-gray-900">{{ category.name }}</h5>
+                                {% if category.effective_is_premium %}
+                                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">PREMIUM</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-600 text-sm mb-4">
+                                {{ category.description|default:"Latihan soal untuk subkategori ini." }}
+                            </p>
+                            <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                                <span>📝 {{ category.questions.count }} Soal</span>
+                                <span class="text-primary font-semibold">
+                                    {{ category.remaining_attempts|default:"0" }}x tersisa
+                                </span>
+                            </div>
+                            {% if category.remaining_attempts > 0 %}
+                            <a href="{% url 'take_quiz' category.id %}"
+                                class="block text-center bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-lg font-semibold transition">
+                                Mulai Latihan →
+                            </a>
+                            {% else %}
+                            <div class="block text-center bg-gray-200 text-gray-500 px-4 py-3 rounded-lg font-semibold">
+                                Batas attempt habis
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
             {% endfor %}
+
+            {% if ungrouped_categories %}
+            <section class="bg-white border-2 border-gray-200 rounded-2xl p-6 shadow-lg">
+                <div class="mb-6">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">Belum Dikelompokkan</p>
+                    <h4 class="mt-2 text-2xl font-bold text-gray-900">Subkategori Mandiri</h4>
+                    <p class="mt-2 text-sm text-gray-600">Kategori berikut belum ditempatkan ke kategori utama.</p>
+                </div>
+                <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for category in ungrouped_categories %}
+                    <div
+                        class="bg-gray-50 border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-primary transition transform hover:-translate-y-1">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-3">
+                                <h5 class="text-xl font-bold text-gray-900">{{ category.name }}</h5>
+                                {% if category.effective_is_premium %}
+                                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">PREMIUM</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-600 text-sm mb-4">
+                                {{ category.description|default:"Latihan soal untuk kategori ini." }}
+                            </p>
+                            <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                                <span>📝 {{ category.questions.count }} Soal</span>
+                                <span class="text-primary font-semibold">
+                                    {{ category.remaining_attempts|default:"0" }}x tersisa
+                                </span>
+                            </div>
+                            {% if category.remaining_attempts > 0 %}
+                            <a href="{% url 'take_quiz' category.id %}"
+                                class="block text-center bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-lg font-semibold transition">
+                                Mulai Latihan →
+                            </a>
+                            {% else %}
+                            <div class="block text-center bg-gray-200 text-gray-500 px-4 py-3 rounded-lg font-semibold">
+                                Batas attempt habis
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
         </div>
         {% else %}
         <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 text-center mb-12 shadow-lg">
             <p class="text-gray-600">Belum ada kategori soal tersedia saat ini.</p>
+        </div>
+        {% endif %}
+
+        <h3 class="text-2xl font-bold mb-6 text-gray-900">Analitik Per Kategori</h3>
+        {% if analytics.category_analytics %}
+        <div class="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden shadow-lg mb-12">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b-2 border-gray-200">
+                        <tr class="text-left">
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Kategori</th>
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Attempt</th>
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Terbaru</th>
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Rata-rata</th>
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Terbaik</th>
+                            <th class="px-6 py-4 text-gray-700 font-semibold">Tren</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for item in analytics.category_analytics %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 text-gray-900 font-semibold">{{ item.category.full_name }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ item.attempts_count }}x</td>
+                            <td class="px-6 py-4 text-gray-900 font-semibold">{{ item.latest_percentage|floatformat:0 }}%</td>
+                            <td class="px-6 py-4 text-gray-600">{{ item.average_percentage|floatformat:0 }}%</td>
+                            <td class="px-6 py-4 text-primary font-semibold">{{ item.best_percentage|floatformat:0 }}%</td>
+                            <td class="px-6 py-4">
+                                {% if item.trend_percentage == None %}
+                                <span class="text-gray-400">Belum ada pembanding</span>
+                                {% elif item.trend_percentage > 0 %}
+                                <span class="font-semibold text-green-600">Naik {{ item.trend_percentage|floatformat:0 }}%</span>
+                                {% elif item.trend_percentage < 0 %}
+                                <span class="font-semibold text-red-600">Turun {{ item.trend_percentage|floatformat:0|cut:"-" }}%</span>
+                                {% else %}
+                                <span class="font-semibold text-gray-500">Stabil</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 text-center mb-12 shadow-lg">
+            <p class="text-gray-600">Belum ada data analitik. Kerjakan satu quiz untuk mulai melihat performa Anda.</p>
         </div>
         {% endif %}
 
@@ -90,7 +230,7 @@
                 <tbody class="divide-y divide-gray-200">
                     {% for attempt in user_attempts %}
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-gray-900">{{ attempt.category.name }}</td>
+                        <td class="px-6 py-4 text-gray-900">{{ attempt.category.full_name }}</td>
                         <td class="px-6 py-4">
                             <span class="font-bold text-primary">{{ attempt.score }}</span>
                             <span class="text-gray-500">/ {{ attempt.total_questions }}</span>
